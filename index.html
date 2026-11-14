@@ -1,77 +1,600 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#101326">
-  <title>Lumos IA — Il tuo assistente</title>
-  <style>
-    :root{color-scheme:dark;--bg:#0b1020;--panel:#121a30;--panel2:#1a2440;--line:#283454;--text:#f4f6ff;--muted:#aab4d0;--accent:#8b7cff;--accent2:#5c9dff}
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 20% 0%,#25245b 0,transparent 42%),var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;display:grid;place-items:center;padding:18px}
-    .app{width:min(900px,100%);height:min(850px,94vh);min-height:520px;border:1px solid var(--line);border-radius:24px;background:#10172beF;box-shadow:0 24px 90px #0008;display:flex;flex-direction:column;overflow:hidden}
-    header{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:13px}
-    .logo{width:44px;height:44px;border-radius:15px;background:linear-gradient(135deg,#8b7cff,#4f8cff);display:grid;place-items:center;font-size:23px;box-shadow:0 6px 22px #756bff55}
-    h1{font-size:19px;margin:0;letter-spacing:.2px}header p{margin:2px 0 0;color:var(--muted);font-size:13px}
-    .status{margin-left:auto;color:#9fe5c2;font-size:12px;display:flex;align-items:center;gap:7px}.dot{width:7px;height:7px;border-radius:50%;background:#58d69a;box-shadow:0 0 10px #58d69a}
-    #messages{flex:1;overflow:auto;padding:24px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth}
-    .welcome{margin:auto;text-align:center;max-width:510px}.welcome .big{font-size:46px}.welcome h2{font-size:25px;margin:8px 0}.welcome p{color:var(--muted);margin:0 0 20px}
-    .chips{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}.chip{border:1px solid var(--line);background:var(--panel);color:#dce2ff;border-radius:999px;padding:9px 13px;cursor:pointer}.chip:hover{border-color:var(--accent)}
-    .msg{max-width:min(78%,680px);padding:13px 16px;border-radius:18px;white-space:pre-wrap;overflow-wrap:anywhere}.user{align-self:flex-end;background:linear-gradient(135deg,#665ce8,#477ce9);border-bottom-right-radius:5px}.assistant{align-self:flex-start;background:var(--panel2);border:1px solid var(--line);border-bottom-left-radius:5px}
-    .typing{color:var(--muted);font-size:13px;padding:0 24px 10px}
-    form{padding:15px 18px 18px;border-top:1px solid var(--line);display:flex;gap:10px;background:#0f1629}
-    textarea{flex:1;resize:none;max-height:140px;min-height:50px;border:1px solid var(--line);border-radius:15px;background:#151e34;color:var(--text);font:inherit;padding:13px 15px;outline:none}textarea:focus{border-color:var(--accent)}
-    button.send{border:0;border-radius:15px;padding:0 19px;color:white;font-weight:650;background:linear-gradient(135deg,#8b7cff,#548bff);cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}
-    .bottom{padding:0 20px 12px;text-align:center;color:#7885a7;font-size:11px;background:#0f1629}
-    @media(max-width:600px){body{padding:0}.app{height:100dvh;min-height:0;border:0;border-radius:0}.msg{max-width:90%}#messages{padding:17px}.welcome h2{font-size:22px}header{padding:14px 16px}form{padding:12px}}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090b16">
+<title>Lumos IA — Intelligenza artificiale</title>
+
+<style>
+:root {
+  --bg:#090b16;
+  --sidebar:#0e1120;
+  --panel:#14182a;
+  --line:#252b43;
+  --text:#f4f5ff;
+  --muted:#929bb8;
+  --purple:#9575ff;
+  --blue:#579aff;
+}
+
+* {box-sizing:border-box}
+
+body {
+  margin:0;
+  height:100vh;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,Arial,sans-serif;
+}
+
+button,textarea {font:inherit}
+
+.app {
+  height:100vh;
+  display:flex;
+}
+
+/* SIDEBAR */
+
+.sidebar {
+  width:265px;
+  flex-shrink:0;
+  background:var(--sidebar);
+  border-right:1px solid var(--line);
+  padding:22px 16px;
+  display:flex;
+  flex-direction:column;
+}
+
+.brand {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:32px;
+}
+
+.logo {
+  width:43px;
+  height:43px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  font-size:25px;
+  background:linear-gradient(135deg,var(--purple),var(--blue));
+  box-shadow:0 0 25px #856aff55;
+}
+
+.brand h1 {
+  font-size:20px;
+  margin:0;
+  letter-spacing:.4px;
+}
+
+.brand p {
+  color:var(--muted);
+  font-size:11px;
+  margin:2px 0 0;
+}
+
+.new-chat {
+  width:100%;
+  border:1px solid #554b94;
+  border-radius:12px;
+  background:linear-gradient(110deg,#28204a,#182b4d);
+  color:white;
+  padding:13px;
+  text-align:left;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.new-chat:hover {
+  border-color:var(--purple);
+  transform:translateY(-2px);
+}
+
+.side-label {
+  color:#78829f;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:1.5px;
+  margin:30px 8px 12px;
+}
+
+#chatList {
+  overflow:auto;
+  flex:1;
+}
+
+.chat-item {
+  width:100%;
+  border:0;
+  background:transparent;
+  color:#cbd0e5;
+  text-align:left;
+  padding:11px;
+  border-radius:9px;
+  cursor:pointer;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  font-size:13px;
+}
+
+.chat-item:hover,.chat-item.active {
+  background:#20253a;
+  color:white;
+}
+
+.sidebar-footer {
+  border-top:1px solid var(--line);
+  padding-top:17px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+/* MAIN */
+
+.main {
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  background:
+    radial-gradient(ellipse at 50% -20%,#34306a55,transparent 55%),
+    var(--bg);
+}
+
+.topbar {
+  height:68px;
+  flex-shrink:0;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 28px;
+}
+
+.top-title {
+  font-size:14px;
+  color:#e1e4f5;
+}
+
+.status {
+  color:#83dfb0;
+  font-size:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.dot {
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#50d69b;
+  box-shadow:0 0 12px #50d69b;
+}
+
+/* CHAT */
+
+#messages {
+  flex:1;
+  overflow-y:auto;
+  padding:35px 22px;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  scroll-behavior:smooth;
+}
+
+.welcome {
+  margin:auto;
+  width:min(650px,100%);
+  text-align:center;
+  padding:20px;
+}
+
+.welcome-icon {
+  width:76px;
+  height:76px;
+  margin:0 auto 22px;
+  border-radius:25px;
+  display:grid;
+  place-items:center;
+  font-size:43px;
+  background:linear-gradient(135deg,#8d6aff,#478eff);
+  box-shadow:0 0 55px #765bff44;
+}
+
+.welcome h2 {
+  font-size:32px;
+  margin:0 0 12px;
+  letter-spacing:-1px;
+}
+
+.welcome h2 span {
+  background:linear-gradient(90deg,#ae91ff,#70baff);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.welcome p {
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.7;
+  margin:0 0 30px;
+}
+
+.chips {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+.chip {
+  background:#141a2c;
+  border:1px solid var(--line);
+  color:#dce1f7;
+  padding:16px;
+  border-radius:13px;
+  cursor:pointer;
+  text-align:left;
+  font-size:13px;
+  transition:.2s;
+}
+
+.chip:hover {
+  background:#202344;
+  border-color:var(--purple);
+  transform:translateY(-2px);
+}
+
+.msg {
+  max-width:min(75%,700px);
+  padding:15px 18px;
+  border-radius:17px;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  line-height:1.65;
+  font-size:14px;
+}
+
+.user {
+  align-self:flex-end;
+  background:linear-gradient(120deg,#6752c9,#416fc9);
+  border-bottom-right-radius:4px;
+}
+
+.assistant {
+  align-self:flex-start;
+  background:#171d30;
+  border:1px solid #2b3450;
+  border-bottom-left-radius:4px;
+}
+
+.typing {
+  padding:0 30px 12px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* INPUT */
+
+.input-area {
+  padding:15px 25px 10px;
+}
+
+.input-box {
+  width:min(850px,100%);
+  margin:auto;
+  background:#151a2d;
+  border:1px solid #343c5c;
+  border-radius:17px;
+  display:flex;
+  align-items:flex-end;
+  padding:9px;
+  gap:10px;
+  transition:.2s;
+  box-shadow:0 10px 35px #0003;
+}
+
+.input-box:focus-within {
+  border-color:#8770f5;
+  box-shadow:0 0 0 3px #8770f522;
+}
+
+textarea {
+  flex:1;
+  min-width:0;
+  resize:none;
+  max-height:140px;
+  min-height:43px;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:white;
+  padding:11px 10px;
+  font-size:14px;
+}
+
+textarea::placeholder {color:#858da9}
+
+.send {
+  width:45px;
+  height:45px;
+  flex-shrink:0;
+  border:0;
+  border-radius:12px;
+  color:white;
+  font-size:19px;
+  background:linear-gradient(135deg,var(--purple),var(--blue));
+  cursor:pointer;
+  transition:.2s;
+}
+
+.send:hover {transform:scale(1.06)}
+.send:disabled {opacity:.5;cursor:not-allowed}
+
+.disclaimer {
+  text-align:center;
+  font-size:10px;
+  color:#737d9a;
+  padding:9px 5px 13px;
+}
+
+/* MOBILE */
+
+.mobile-brand {display:none}
+
+@media(max-width:700px) {
+  .sidebar {display:none}
+  .topbar {height:58px;padding:0 16px}
+  #messages {padding:20px 14px}
+  .welcome h2 {font-size:25px}
+  .welcome-icon {width:65px;height:65px}
+  .chips {grid-template-columns:1fr}
+  .msg {max-width:92%}
+  .input-area {padding:10px 12px}
+  .disclaimer {font-size:9px}
+}
+</style>
 </head>
+
 <body>
-  <main class="app">
-    <header>
-      <div class="logo">✦</div>
-      <div><h1>Lumos IA</h1><p>Il tuo assistente intelligente</p></div>
-      <div class="status"><span class="dot"></span> Pronto ad aiutarti</div>
-    </header>
-    <section id="messages" aria-live="polite">
-      <div class="welcome" id="welcome">
-        <div class="big">✧</div><h2>Ciao, sono Lumos IA</h2>
-        <p>Chiedimi quello che vuoi: posso aiutarti a studiare, scrivere, capire e creare.</p>
-        <div class="chips">
-          <button class="chip" type="button">Spiegami il present simple</button>
-          <button class="chip" type="button">Dammi un'idea per un progetto</button>
-          <button class="chip" type="button">Come funziona l'intelligenza artificiale?</button>
-        </div>
+<div class="app">
+
+<aside class="sidebar">
+  <div class="brand">
+    <div class="logo">✦</div>
+    <div>
+      <h1>Lumos IA</h1>
+      <p>Il tuo assistente intelligente</p>
+    </div>
+  </div>
+
+  <button class="new-chat" id="newChat">＋ Nuova conversazione</button>
+
+  <div class="side-label">Le tue conversazioni</div>
+  <div id="chatList"></div>
+
+  <div class="sidebar-footer">
+    ✦ Lumos IA · Il futuro dell'intelligenza
+  </div>
+</aside>
+
+<main class="main">
+
+  <header class="topbar">
+    <div class="top-title">✦ &nbsp; Assistente AI</div>
+    <div class="status"><span class="dot"></span> Online</div>
+  </header>
+
+  <section id="messages" aria-live="polite">
+    <div class="welcome" id="welcome">
+      <div class="welcome-icon">✦</div>
+      <h2>Benvenuto in <span>Lumos IA</span></h2>
+      <p>
+        La tua intelligenza artificiale personale.<br>
+        Fai una domanda, racconta un'idea o inizia una nuova conversazione.
+      </p>
+
+      <div class="chips">
+        <button class="chip">📚 Spiegami il present simple</button>
+        <button class="chip">💡 Dammi un'idea per un progetto</button>
+        <button class="chip">🤖 Come funziona l'intelligenza artificiale?</button>
+        <button class="chip">✍️ Aiutami a scrivere un testo</button>
       </div>
-    </section>
-    <div class="typing" id="typing" hidden>Lumos IA sta pensando…</div>
-    <form id="form">
-      <textarea id="prompt" rows="1" placeholder="Scrivi un messaggio a Lumos IA…" aria-label="Messaggio" required></textarea>
-      <button class="send" id="send" type="submit">Invia ➤</button>
+    </div>
+  </section>
+
+  <div class="typing" id="typing" hidden>
+    ✦ Lumos IA sta pensando...
+  </div>
+
+  <div class="input-area">
+    <form class="input-box" id="form">
+      <textarea id="prompt" rows="1"
+        placeholder="Scrivi un messaggio a Lumos IA..."
+        aria-label="Messaggio" required></textarea>
+      <button class="send" id="send" type="submit">➤</button>
     </form>
-    <div class="bottom">Lumos IA può commettere errori: verifica le informazioni importanti.</div>
-  </main>
+  </div>
+
+  <div class="disclaimer">
+    Lumos IA può commettere errori: verifica le informazioni importanti.
+  </div>
+
+</main>
+</div>
+
 <script>
-const form=document.querySelector('#form'), input=document.querySelector('#prompt'), messages=document.querySelector('#messages');
-const send=document.querySelector('#send'), typing=document.querySelector('#typing'), welcome=document.querySelector('#welcome');
+const form=document.querySelector('#form');
+const input=document.querySelector('#prompt');
+const messages=document.querySelector('#messages');
+const send=document.querySelector('#send');
+const typing=document.querySelector('#typing');
+const chatList=document.querySelector('#chatList');
+
 let history=[];
-function bubble(text,role){if(welcome)welcome.remove();const el=document.createElement('div');el.className='msg '+(role==='user'?'user':'assistant');el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;}
+let conversations=[];
+let activeId=null;
+
+function saveChats(){
+  localStorage.setItem('lumos_chats',JSON.stringify(conversations));
+}
+
+function renderList(){
+  chatList.innerHTML='';
+  conversations.forEach(chat=>{
+    const button=document.createElement('button');
+    button.className='chat-item'+(chat.id===activeId?' active':'');
+    button.textContent='▸  '+chat.title;
+    button.onclick=()=>loadChat(chat.id);
+    chatList.appendChild(button);
+  });
+}
+
+function newChat(){
+  if(send.disabled)return;
+  activeId=Date.now().toString();
+  history=[];
+  messages.innerHTML=`
+    <div class="welcome" id="welcome">
+      <div class="welcome-icon">✦</div>
+      <h2>Benvenuto in <span>Lumos IA</span></h2>
+      <p>La tua intelligenza artificiale personale.<br>
+      Fai una domanda e iniziamo!</p>
+      <div class="chips">
+        <button class="chip">📚 Spiegami il present simple</button>
+        <button class="chip">💡 Dammi un'idea per un progetto</button>
+        <button class="chip">🤖 Come funziona l'intelligenza artificiale?</button>
+        <button class="chip">✍️ Aiutami a scrivere un testo</button>
+      </div>
+    </div>`;
+  attachChips();
+  renderList();
+  input.focus();
+}
+
+function loadChat(id){
+  if(send.disabled)return;
+  const chat=conversations.find(c=>c.id===id);
+  if(!chat)return;
+  activeId=id;
+  history=chat.messages.map(m=>({...m}));
+  messages.innerHTML='';
+  history.forEach(m=>bubble(m.content,m.role));
+  renderList();
+}
+
+function bubble(text,role){
+  const el=document.createElement('div');
+  el.className='msg '+(role==='user'?'user':'assistant');
+  el.textContent=text;
+  messages.appendChild(el);
+  messages.scrollTop=messages.scrollHeight;
+}
+
+function attachChips(){
+  document.querySelectorAll('.chip').forEach(b=>{
+    b.addEventListener('click',()=>submit(b.textContent.replace(/^.{2}\s/,'').trim()));
+  });
+}
+
 async function submit(text){
-  text=text.trim(); if(!text||send.disabled)return;
-  bubble(text,'user'); history.push({role:'user',content:text});
-  input.value=''; input.style.height='auto'; send.disabled=true;typing.hidden=false;
+  text=text.trim();
+  if(!text||send.disabled)return;
+
+  if(!activeId){
+    activeId=Date.now().toString();
+  }
+
+  const wasEmpty=history.length===0;
+
+  bubble(text,'user');
+  history.push({role:'user',content:text});
+
+  if(wasEmpty){
+    conversations.push({
+      id:activeId,
+      title:text.slice(0,35),
+      messages:history
+    });
+  }else{
+    const chat=conversations.find(c=>c.id===activeId);
+    if(chat)chat.messages=history;
+  }
+
+  input.value='';
+  input.style.height='auto';
+  send.disabled=true;
+  typing.hidden=false;
+
   try{
-    const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history.slice(-12)})});
+    const response=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:history.slice(-12)})
+    });
+
     const data=await response.json();
     if(!response.ok)throw new Error(data.error||'Errore del server');
+
     const answer=data.reply||'Non ho ricevuto una risposta.';
-    history.push({role:'assistant',content:answer});bubble(answer,'assistant');
-  }catch(err){bubble('Mi dispiace, c’è stato un problema: '+err.message,'assistant');history.pop();}
-  finally{typing.hidden=true;send.disabled=false;input.focus();}
+    history.push({role:'assistant',content:answer});
+    bubble(answer,'assistant');
+
+    const chat=conversations.find(c=>c.id===activeId);
+    if(chat)chat.messages=history;
+
+    saveChats();
+    renderList();
+
+  }catch(err){
+    bubble('Mi dispiace, c’è stato un problema: '+err.message,'assistant');
+    history.pop();
+    const chat=conversations.find(c=>c.id===activeId);
+    if(chat)chat.messages=history;
+  }finally{
+    typing.hidden=true;
+    send.disabled=false;
+    input.focus();
+  }
 }
-form.addEventListener('submit',e=>{e.preventDefault();submit(input.value)});
-input.addEventListener('input',()=>{input.style.height='auto';input.style.height=Math.min(input.scrollHeight,140)+'px'});
-input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();form.requestSubmit()}});
-document.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>submit(b.textContent)));
+
+document.querySelector('#newChat').addEventListener('click',newChat);
+
+form.addEventListener('submit',e=>{
+  e.preventDefault();
+  submit(input.value);
+});
+
+input.addEventListener('input',()=>{
+  input.style.height='auto';
+  input.style.height=Math.min(input.scrollHeight,140)+'px';
+});
+
+input.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){
+    e.preventDefault();
+    form.requestSubmit();
+  }
+});
+
+try{
+  conversations=JSON.parse(localStorage.getItem('lumos_chats')||'[]');
+  renderList();
+}catch(e){
+  conversations=[];
+}
+
+attachChips();
 </script>
 </body>
 </html>
