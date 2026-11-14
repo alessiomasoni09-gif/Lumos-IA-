@@ -3,365 +3,238 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#090b16">
-<title>Lumos IA — Intelligenza artificiale</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080914">
+<title>Lumos IA — Your AI Assistant</title>
 <style>
-:root {
-  --bg:#090b16;
-  --sidebar:#0e1120;
-  --panel:#14182a;
-  --line:#252b43;
-  --text:#f4f5ff;
-  --muted:#929bb8;
-  --purple:#9575ff;
-  --blue:#579aff;
+:root{
+  --bg:#080914;
+  --panel:#101326;
+  --panel2:#151a31;
+  --line:#292e4c;
+  --text:#f5f5ff;
+  --muted:#929bb9;
+  --purple:#9674ff;
+  --blue:#54a0ff;
 }
-
-* {box-sizing:border-box}
-
-body {
-  margin:0;
-  height:100vh;
-  overflow:hidden;
-  background:var(--bg);
-  color:var(--text);
-  font-family:Inter,system-ui,Arial,sans-serif;
+*{box-sizing:border-box}
+body{
+  margin:0;height:100vh;overflow:hidden;
+  background:var(--bg);color:var(--text);
+  font-family:Inter,system-ui,Segoe UI,sans-serif;
 }
-
-button,textarea {font:inherit}
-
-.app {
-  height:100vh;
-  display:flex;
-}
+button,textarea{font:inherit}
+button{cursor:pointer}
+.app{height:100vh;display:flex}
 
 /* SIDEBAR */
-
-.sidebar {
-  width:265px;
-  flex-shrink:0;
-  background:var(--sidebar);
+.sidebar{
+  width:275px;flex-shrink:0;
+  background:rgba(12,14,29,.94);
   border-right:1px solid var(--line);
-  padding:22px 16px;
-  display:flex;
-  flex-direction:column;
+  padding:22px 17px;
+  display:flex;flex-direction:column;
+  transition:width .25s,padding .25s;
+  z-index:5;
 }
-
-.brand {
-  display:flex;
-  align-items:center;
-  gap:12px;
-  margin-bottom:32px;
+.sidebar.collapsed{width:0;padding:0;overflow:hidden;border:0}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:34px}
+.logo{
+  width:45px;height:45px;flex-shrink:0;
+  border-radius:15px;display:grid;place-items:center;
+  font-size:26px;
+  background:linear-gradient(135deg,#a17bff,#477fff);
+  box-shadow:0 0 25px #8765ff66, inset 0 1px 8px #ffffff55;
 }
-
-.logo {
-  width:43px;
-  height:43px;
-  border-radius:14px;
-  display:grid;
-  place-items:center;
-  font-size:25px;
-  background:linear-gradient(135deg,var(--purple),var(--blue));
-  box-shadow:0 0 25px #856aff55;
-}
-
-.brand h1 {
-  font-size:20px;
-  margin:0;
-  letter-spacing:.4px;
-}
-
-.brand p {
-  color:var(--muted);
-  font-size:11px;
-  margin:2px 0 0;
-}
-
-.new-chat {
-  width:100%;
-  border:1px solid #554b94;
-  border-radius:12px;
-  background:linear-gradient(110deg,#28204a,#182b4d);
-  color:white;
-  padding:13px;
-  text-align:left;
-  cursor:pointer;
+.brand h1{font-size:20px;margin:0;letter-spacing:.4px}
+.brand p{font-size:11px;color:var(--muted);margin:3px 0 0}
+.new-chat{
+  width:100%;padding:14px;
+  border:1px solid #51438c;border-radius:13px;
+  background:linear-gradient(110deg,#302451,#182d50);
+  color:white;text-align:left;
+  box-shadow:0 5px 20px #6e55dd18;
   transition:.2s;
 }
-
-.new-chat:hover {
-  border-color:var(--purple);
-  transform:translateY(-2px);
+.new-chat:hover{border-color:#a38aff;transform:translateY(-2px)}
+.side-label{
+  color:#777f9f;font-size:10px;
+  letter-spacing:1.7px;text-transform:uppercase;
+  margin:30px 9px 13px;
 }
-
-.side-label {
-  color:#78829f;
-  font-size:11px;
-  text-transform:uppercase;
-  letter-spacing:1.5px;
-  margin:30px 8px 12px;
+#chatList{flex:1;overflow:auto}
+.chat-item{
+  display:block;width:100%;padding:12px;
+  background:transparent;border:0;border-radius:10px;
+  color:#bfc6df;text-align:left;font-size:13px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-
-#chatList {
-  overflow:auto;
-  flex:1;
-}
-
-.chat-item {
-  width:100%;
-  border:0;
-  background:transparent;
-  color:#cbd0e5;
-  text-align:left;
-  padding:11px;
-  border-radius:9px;
-  cursor:pointer;
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-  font-size:13px;
-}
-
-.chat-item:hover,.chat-item.active {
-  background:#20253a;
-  color:white;
-}
-
-.sidebar-footer {
+.chat-item:hover,.chat-item.active{background:#20243d;color:white}
+.sidebar-footer{
   border-top:1px solid var(--line);
-  padding-top:17px;
-  color:var(--muted);
-  font-size:12px;
+  padding-top:17px;color:#858eaa;font-size:11px;
 }
 
 /* MAIN */
-
-.main {
-  flex:1;
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  position:relative;
+.main{
+  min-width:0;flex:1;display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
   background:
-    radial-gradient(ellipse at 50% -20%,#34306a55,transparent 55%),
-    var(--bg);
+    radial-gradient(ellipse at 50% -15%,#45318145,transparent 45%),
+    radial-gradient(ellipse at 100% 70%,#174a8730,transparent 40%),
+    #080914;
 }
-
-.topbar {
-  height:68px;
-  flex-shrink:0;
-  border-bottom:1px solid var(--line);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 28px;
+.topbar{
+  height:70px;flex-shrink:0;
+  border-bottom:1px solid #ffffff0c;
+  display:flex;align-items:center;
+  justify-content:space-between;padding:0 26px;
+  background:#0c0e1b77;backdrop-filter:blur(18px);
 }
-
-.top-title {
-  font-size:14px;
-  color:#e1e4f5;
+.top-left{display:flex;align-items:center;gap:15px}
+.menu{
+  width:39px;height:39px;border-radius:11px;
+  border:1px solid var(--line);background:#171a2d;
+  color:white;font-size:19px;
 }
-
-.status {
-  color:#83dfb0;
-  font-size:12px;
-  display:flex;
-  align-items:center;
-  gap:8px;
+.top-title{font-size:13px;color:#e0e2f5}
+.status{
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;color:#83e2b5;
+  border:1px solid #3a9f7444;
+  background:#1c9a6810;padding:8px 12px;border-radius:30px;
 }
-
-.dot {
-  width:7px;
-  height:7px;
-  border-radius:50%;
-  background:#50d69b;
-  box-shadow:0 0 12px #50d69b;
-}
+.dot{width:7px;height:7px;border-radius:50%;background:#56dfa0;box-shadow:0 0 10px #56dfa0}
 
 /* CHAT */
-
-#messages {
-  flex:1;
-  overflow-y:auto;
-  padding:35px 22px;
-  display:flex;
-  flex-direction:column;
-  gap:20px;
+#messages{
+  flex:1;overflow-y:auto;padding:35px 20px;
+  display:flex;flex-direction:column;gap:22px;
   scroll-behavior:smooth;
 }
-
-.welcome {
-  margin:auto;
-  width:min(650px,100%);
-  text-align:center;
-  padding:20px;
+.welcome{
+  margin:auto;width:min(720px,100%);
+  text-align:center;padding:22px;
+  animation:appear .7s ease;
 }
-
-.welcome-icon {
-  width:76px;
-  height:76px;
-  margin:0 auto 22px;
-  border-radius:25px;
-  display:grid;
-  place-items:center;
-  font-size:43px;
-  background:linear-gradient(135deg,#8d6aff,#478eff);
-  box-shadow:0 0 55px #765bff44;
+@keyframes appear{
+  from{opacity:0;transform:translateY(15px)}
+  to{opacity:1;transform:translateY(0)}
 }
-
-.welcome h2 {
-  font-size:32px;
-  margin:0 0 12px;
-  letter-spacing:-1px;
+.welcome-icon{
+  width:88px;height:88px;margin:0 auto 25px;
+  border-radius:28px;display:grid;place-items:center;
+  font-size:48px;
+  background:linear-gradient(135deg,#a17aff,#478dff);
+  box-shadow:0 0 40px #8b69ff66,0 0 100px #537cff25;
+  animation:glow 4s infinite alternate;
 }
-
-.welcome h2 span {
-  background:linear-gradient(90deg,#ae91ff,#70baff);
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
+@keyframes glow{
+  from{box-shadow:0 0 30px #8b69ff55}
+  to{box-shadow:0 0 55px #648dff99,0 0 100px #8b69ff33}
 }
-
-.welcome p {
-  color:var(--muted);
-  font-size:14px;
-  line-height:1.7;
-  margin:0 0 30px;
+.welcome h2{font-size:35px;letter-spacing:-1.4px;margin:0 0 12px}
+.welcome h2 span{
+  background:linear-gradient(90deg,#b79aff,#72baff);
+  color:transparent;background-clip:text;
 }
-
-.chips {
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:12px;
+.welcome p{
+  color:var(--muted);font-size:14px;
+  line-height:1.8;margin:0 0 35px;
 }
-
-.chip {
-  background:#141a2c;
-  border:1px solid var(--line);
-  color:#dce1f7;
-  padding:16px;
-  border-radius:13px;
-  cursor:pointer;
-  text-align:left;
-  font-size:13px;
-  transition:.2s;
+.chips{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:13px;text-align:left;
 }
-
-.chip:hover {
-  background:#202344;
-  border-color:var(--purple);
-  transform:translateY(-2px);
+.chip{
+  padding:17px;border-radius:15px;
+  background:linear-gradient(135deg,#171b32bb,#111629bb);
+  border:1px solid #ffffff13;
+  color:#dce1f7;text-align:left;font-size:13px;
+  transition:.25s;
 }
-
-.msg {
-  max-width:min(75%,700px);
-  padding:15px 18px;
-  border-radius:17px;
-  white-space:pre-wrap;
-  overflow-wrap:anywhere;
-  line-height:1.65;
-  font-size:14px;
+.chip:hover{
+  transform:translateY(-3px);
+  border-color:#9674ff99;
+  background:#242341;
+  box-shadow:0 8px 25px #8a6aff18;
 }
-
-.user {
+.msg{
+  max-width:min(76%,750px);
+  padding:15px 19px;border-radius:18px;
+  white-space:pre-wrap;overflow-wrap:anywhere;
+  font-size:14px;line-height:1.75;
+  animation:appear .3s ease;
+}
+.user{
   align-self:flex-end;
-  background:linear-gradient(120deg,#6752c9,#416fc9);
-  border-bottom-right-radius:4px;
+  background:linear-gradient(125deg,#7657d9,#397edb);
+  border:1px solid #ffffff20;
+  border-bottom-right-radius:5px;
+  box-shadow:0 7px 25px #537cff18;
 }
-
-.assistant {
+.assistant{
   align-self:flex-start;
-  background:#171d30;
-  border:1px solid #2b3450;
-  border-bottom-left-radius:4px;
+  background:linear-gradient(135deg,#171c32,#12172a);
+  border:1px solid #ffffff13;
+  border-bottom-left-radius:5px;
 }
-
-.typing {
-  padding:0 30px 12px;
-  font-size:12px;
-  color:var(--muted);
+.typing{
+  padding:0 28px 12px;color:#a99bff;font-size:12px;
 }
 
 /* INPUT */
-
-.input-area {
-  padding:15px 25px 10px;
+.input-area{padding:14px 24px 8px}
+.input-box{
+  width:min(850px,100%);margin:auto;
+  display:flex;align-items:flex-end;gap:10px;
+  padding:10px;
+  border:1px solid #55508088;
+  border-radius:19px;
+  background:linear-gradient(135deg,#171a30ed,#121a2ced);
+  box-shadow:0 0 25px #765bff13,0 12px 40px #0005;
+  backdrop-filter:blur(20px);
+  transition:.25s;
 }
-
-.input-box {
-  width:min(850px,100%);
-  margin:auto;
-  background:#151a2d;
-  border:1px solid #343c5c;
-  border-radius:17px;
-  display:flex;
-  align-items:flex-end;
-  padding:9px;
-  gap:10px;
-  transition:.2s;
-  box-shadow:0 10px 35px #0003;
+.input-box:focus-within{
+  border-color:#987dff;
+  box-shadow:0 0 0 3px #9674ff16,0 0 35px #9674ff22;
 }
-
-.input-box:focus-within {
-  border-color:#8770f5;
-  box-shadow:0 0 0 3px #8770f522;
+textarea{
+  flex:1;min-width:0;resize:none;
+  min-height:43px;max-height:140px;
+  background:transparent;border:0;outline:0;
+  color:white;padding:11px 12px;font-size:14px;
 }
-
-textarea {
-  flex:1;
-  min-width:0;
-  resize:none;
-  max-height:140px;
-  min-height:43px;
-  border:0;
-  outline:0;
-  background:transparent;
-  color:white;
-  padding:11px 10px;
-  font-size:14px;
-}
-
-textarea::placeholder {color:#858da9}
-
-.send {
-  width:45px;
-  height:45px;
-  flex-shrink:0;
-  border:0;
-  border-radius:12px;
-  color:white;
-  font-size:19px;
-  background:linear-gradient(135deg,var(--purple),var(--blue));
-  cursor:pointer;
+textarea::placeholder{color:#858da9}
+.send{
+  width:46px;height:46px;flex-shrink:0;
+  border:0;border-radius:14px;color:white;font-size:20px;
+  background:linear-gradient(135deg,#a17aff,#4c91ff);
+  box-shadow:0 4px 18px #806aff55;
   transition:.2s;
 }
-
-.send:hover {transform:scale(1.06)}
-.send:disabled {opacity:.5;cursor:not-allowed}
-
-.disclaimer {
-  text-align:center;
-  font-size:10px;
-  color:#737d9a;
-  padding:9px 5px 13px;
+.send:hover{transform:scale(1.07);box-shadow:0 0 25px #9275ff88}
+.send:disabled{opacity:.5;cursor:not-allowed}
+.disclaimer{
+  padding:8px 10px 13px;text-align:center;
+  color:#68718d;font-size:10px;
 }
 
 /* MOBILE */
-
-.mobile-brand {display:none}
-
-@media(max-width:700px) {
-  .sidebar {display:none}
-  .topbar {height:58px;padding:0 16px}
-  #messages {padding:20px 14px}
-  .welcome h2 {font-size:25px}
-  .welcome-icon {width:65px;height:65px}
-  .chips {grid-template-columns:1fr}
-  .msg {max-width:92%}
-  .input-area {padding:10px 12px}
-  .disclaimer {font-size:9px}
+@media(max-width:700px){
+  .sidebar{
+    position:absolute;left:0;top:0;bottom:0;
+    width:275px;box-shadow:15px 0 50px #0009;
+  }
+  .sidebar.collapsed{width:0}
+  .topbar{height:60px;padding:0 14px}
+  #messages{padding:20px 13px}
+  .welcome h2{font-size:27px}
+  .welcome-icon{width:70px;height:70px;font-size:39px}
+  .chips{grid-template-columns:1fr}
+  .msg{max-width:93%}
+  .input-area{padding:10px 11px 5px}
 }
 </style>
 </head>
@@ -369,67 +242,60 @@ textarea::placeholder {color:#858da9}
 <body>
 <div class="app">
 
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="brand">
     <div class="logo">✦</div>
     <div>
       <h1>Lumos IA</h1>
-      <p>Il tuo assistente intelligente</p>
+      <p>YOUR PERSONAL AI</p>
     </div>
   </div>
 
-  <button class="new-chat" id="newChat">＋ Nuova conversazione</button>
+  <button class="new-chat" id="newChat">＋ &nbsp; Nuova conversazione</button>
 
-  <div class="side-label">Le tue conversazioni</div>
+  <div class="side-label">Cronologia</div>
   <div id="chatList"></div>
 
-  <div class="sidebar-footer">
-    ✦ Lumos IA · Il futuro dell'intelligenza
-  </div>
+  <div class="sidebar-footer">✦ &nbsp; Lumos IA · AI Experience</div>
 </aside>
 
 <main class="main">
-
   <header class="topbar">
-    <div class="top-title">✦ &nbsp; Assistente AI</div>
+    <div class="top-left">
+      <button class="menu" id="menu" aria-label="Apri menu">☰</button>
+      <div class="top-title">✦ &nbsp; Assistente intelligente</div>
+    </div>
     <div class="status"><span class="dot"></span> Online</div>
   </header>
 
   <section id="messages" aria-live="polite">
     <div class="welcome" id="welcome">
       <div class="welcome-icon">✦</div>
-      <h2>Benvenuto in <span>Lumos IA</span></h2>
+      <h2>Il futuro inizia con <span>Lumos.</span></h2>
       <p>
-        La tua intelligenza artificiale personale.<br>
-        Fai una domanda, racconta un'idea o inizia una nuova conversazione.
+        Ciao! Sono Lumos IA, il tuo assistente intelligente.<br>
+        Cosa posso fare per te oggi?
       </p>
-
       <div class="chips">
-        <button class="chip">📚 Spiegami il present simple</button>
-        <button class="chip">💡 Dammi un'idea per un progetto</button>
-        <button class="chip">🤖 Come funziona l'intelligenza artificiale?</button>
-        <button class="chip">✍️ Aiutami a scrivere un testo</button>
+        <button class="chip">📚 &nbsp; Spiegami il present simple</button>
+        <button class="chip">💡 &nbsp; Dammi un'idea per un progetto</button>
+        <button class="chip">🤖 &nbsp; Come funziona l'intelligenza artificiale?</button>
+        <button class="chip">✍️ &nbsp; Aiutami a scrivere un testo</button>
       </div>
     </div>
   </section>
 
-  <div class="typing" id="typing" hidden>
-    ✦ Lumos IA sta pensando...
-  </div>
+  <div class="typing" id="typing" hidden>✦ Lumos IA sta elaborando la risposta...</div>
 
   <div class="input-area">
     <form class="input-box" id="form">
       <textarea id="prompt" rows="1"
-        placeholder="Scrivi un messaggio a Lumos IA..."
+        placeholder="Chiedi qualsiasi cosa a Lumos IA..."
         aria-label="Messaggio" required></textarea>
       <button class="send" id="send" type="submit">➤</button>
     </form>
   </div>
-
-  <div class="disclaimer">
-    Lumos IA può commettere errori: verifica le informazioni importanti.
-  </div>
-
+  <div class="disclaimer">Lumos IA può commettere errori: verifica le informazioni importanti.</div>
 </main>
 </div>
 
@@ -440,6 +306,7 @@ const messages=document.querySelector('#messages');
 const send=document.querySelector('#send');
 const typing=document.querySelector('#typing');
 const chatList=document.querySelector('#chatList');
+const sidebar=document.querySelector('#sidebar');
 
 let history=[];
 let conversations=[];
@@ -451,33 +318,35 @@ function saveChats(){
 
 function renderList(){
   chatList.innerHTML='';
-  conversations.forEach(chat=>{
+  conversations.slice().reverse().forEach(chat=>{
     const button=document.createElement('button');
     button.className='chat-item'+(chat.id===activeId?' active':'');
-    button.textContent='▸  '+chat.title;
+    button.textContent='✧  '+chat.title;
     button.onclick=()=>loadChat(chat.id);
     chatList.appendChild(button);
   });
 }
 
-function newChat(){
-  if(send.disabled)return;
-  activeId=Date.now().toString();
-  history=[];
+function welcomeScreen(){
   messages.innerHTML=`
     <div class="welcome" id="welcome">
       <div class="welcome-icon">✦</div>
-      <h2>Benvenuto in <span>Lumos IA</span></h2>
-      <p>La tua intelligenza artificiale personale.<br>
-      Fai una domanda e iniziamo!</p>
+      <h2>Il futuro inizia con <span>Lumos.</span></h2>
+      <p>Ciao! Sono Lumos IA, il tuo assistente intelligente.<br>Cosa posso fare per te oggi?</p>
       <div class="chips">
-        <button class="chip">📚 Spiegami il present simple</button>
-        <button class="chip">💡 Dammi un'idea per un progetto</button>
-        <button class="chip">🤖 Come funziona l'intelligenza artificiale?</button>
-        <button class="chip">✍️ Aiutami a scrivere un testo</button>
+        <button class="chip">📚 &nbsp; Spiegami il present simple</button>
+        <button class="chip">💡 &nbsp; Dammi un'idea per un progetto</button>
+        <button class="chip">🤖 &nbsp; Come funziona l'intelligenza artificiale?</button>
+        <button class="chip">✍️ &nbsp; Aiutami a scrivere un testo</button>
       </div>
     </div>`;
-  attachChips();
+}
+
+function newChat(){
+  if(send.disabled)return;
+  activeId=null;
+  history=[];
+  welcomeScreen();
   renderList();
   input.focus();
 }
@@ -501,22 +370,13 @@ function bubble(text,role){
   messages.scrollTop=messages.scrollHeight;
 }
 
-function attachChips(){
-  document.querySelectorAll('.chip').forEach(b=>{
-    b.addEventListener('click',()=>submit(b.textContent.replace(/^.{2}\s/,'').trim()));
-  });
-}
-
 async function submit(text){
   text=text.trim();
   if(!text||send.disabled)return;
 
-  if(!activeId){
-    activeId=Date.now().toString();
-  }
+  if(!activeId)activeId=Date.now().toString();
 
   const wasEmpty=history.length===0;
-
   bubble(text,'user');
   history.push({role:'user',content:text});
 
@@ -568,7 +428,10 @@ async function submit(text){
   }
 }
 
-document.querySelector('#newChat').addEventListener('click',newChat);
+document.querySelector('#newChat').onclick=newChat;
+document.querySelector('#menu').onclick=()=>{
+  sidebar.classList.toggle('collapsed');
+};
 
 form.addEventListener('submit',e=>{
   e.preventDefault();
@@ -587,14 +450,18 @@ input.addEventListener('keydown',e=>{
   }
 });
 
+messages.addEventListener('click',e=>{
+  const chip=e.target.closest('.chip');
+  if(chip)submit(chip.textContent.replace(/^[^a-zA-Z0-9À-ÿ]+/,'').trim());
+});
+
 try{
   conversations=JSON.parse(localStorage.getItem('lumos_chats')||'[]');
+  if(!Array.isArray(conversations))conversations=[];
   renderList();
 }catch(e){
   conversations=[];
 }
-
-attachChips();
 </script>
 </body>
 </html>
