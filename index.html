@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101326">
+  <title>Lumos IA — Il tuo assistente</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0b1020;--panel:#121a30;--panel2:#1a2440;--line:#283454;--text:#f4f6ff;--muted:#aab4d0;--accent:#8b7cff;--accent2:#5c9dff}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 20% 0%,#25245b 0,transparent 42%),var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;display:grid;place-items:center;padding:18px}
+    .app{width:min(900px,100%);height:min(850px,94vh);min-height:520px;border:1px solid var(--line);border-radius:24px;background:#10172beF;box-shadow:0 24px 90px #0008;display:flex;flex-direction:column;overflow:hidden}
+    header{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:13px}
+    .logo{width:44px;height:44px;border-radius:15px;background:linear-gradient(135deg,#8b7cff,#4f8cff);display:grid;place-items:center;font-size:23px;box-shadow:0 6px 22px #756bff55}
+    h1{font-size:19px;margin:0;letter-spacing:.2px}header p{margin:2px 0 0;color:var(--muted);font-size:13px}
+    .status{margin-left:auto;color:#9fe5c2;font-size:12px;display:flex;align-items:center;gap:7px}.dot{width:7px;height:7px;border-radius:50%;background:#58d69a;box-shadow:0 0 10px #58d69a}
+    #messages{flex:1;overflow:auto;padding:24px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth}
+    .welcome{margin:auto;text-align:center;max-width:510px}.welcome .big{font-size:46px}.welcome h2{font-size:25px;margin:8px 0}.welcome p{color:var(--muted);margin:0 0 20px}
+    .chips{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}.chip{border:1px solid var(--line);background:var(--panel);color:#dce2ff;border-radius:999px;padding:9px 13px;cursor:pointer}.chip:hover{border-color:var(--accent)}
+    .msg{max-width:min(78%,680px);padding:13px 16px;border-radius:18px;white-space:pre-wrap;overflow-wrap:anywhere}.user{align-self:flex-end;background:linear-gradient(135deg,#665ce8,#477ce9);border-bottom-right-radius:5px}.assistant{align-self:flex-start;background:var(--panel2);border:1px solid var(--line);border-bottom-left-radius:5px}
+    .typing{color:var(--muted);font-size:13px;padding:0 24px 10px}
+    form{padding:15px 18px 18px;border-top:1px solid var(--line);display:flex;gap:10px;background:#0f1629}
+    textarea{flex:1;resize:none;max-height:140px;min-height:50px;border:1px solid var(--line);border-radius:15px;background:#151e34;color:var(--text);font:inherit;padding:13px 15px;outline:none}textarea:focus{border-color:var(--accent)}
+    button.send{border:0;border-radius:15px;padding:0 19px;color:white;font-weight:650;background:linear-gradient(135deg,#8b7cff,#548bff);cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}
+    .bottom{padding:0 20px 12px;text-align:center;color:#7885a7;font-size:11px;background:#0f1629}
+    @media(max-width:600px){body{padding:0}.app{height:100dvh;min-height:0;border:0;border-radius:0}.msg{max-width:90%}#messages{padding:17px}.welcome h2{font-size:22px}header{padding:14px 16px}form{padding:12px}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="logo">✦</div>
+      <div><h1>Lumos IA</h1><p>Il tuo assistente intelligente</p></div>
+      <div class="status"><span class="dot"></span> Pronto ad aiutarti</div>
+    </header>
+    <section id="messages" aria-live="polite">
+      <div class="welcome" id="welcome">
+        <div class="big">✧</div><h2>Ciao, sono Lumos IA</h2>
+        <p>Chiedimi quello che vuoi: posso aiutarti a studiare, scrivere, capire e creare.</p>
+        <div class="chips">
+          <button class="chip" type="button">Spiegami il present simple</button>
+          <button class="chip" type="button">Dammi un'idea per un progetto</button>
+          <button class="chip" type="button">Come funziona l'intelligenza artificiale?</button>
+        </div>
+      </div>
+    </section>
+    <div class="typing" id="typing" hidden>Lumos IA sta pensando…</div>
+    <form id="form">
+      <textarea id="prompt" rows="1" placeholder="Scrivi un messaggio a Lumos IA…" aria-label="Messaggio" required></textarea>
+      <button class="send" id="send" type="submit">Invia ➤</button>
+    </form>
+    <div class="bottom">Lumos IA può commettere errori: verifica le informazioni importanti.</div>
+  </main>
+<script>
+const form=document.querySelector('#form'), input=document.querySelector('#prompt'), messages=document.querySelector('#messages');
+const send=document.querySelector('#send'), typing=document.querySelector('#typing'), welcome=document.querySelector('#welcome');
+let history=[];
+function bubble(text,role){if(welcome)welcome.remove();const el=document.createElement('div');el.className='msg '+(role==='user'?'user':'assistant');el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;}
+async function submit(text){
+  text=text.trim(); if(!text||send.disabled)return;
+  bubble(text,'user'); history.push({role:'user',content:text});
+  input.value=''; input.style.height='auto'; send.disabled=true;typing.hidden=false;
+  try{
+    const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history.slice(-12)})});
+    const data=await response.json();
+    if(!response.ok)throw new Error(data.error||'Errore del server');
+    const answer=data.reply||'Non ho ricevuto una risposta.';
+    history.push({role:'assistant',content:answer});bubble(answer,'assistant');
+  }catch(err){bubble('Mi dispiace, c’è stato un problema: '+err.message,'assistant');history.pop();}
+  finally{typing.hidden=true;send.disabled=false;input.focus();}
+}
+form.addEventListener('submit',e=>{e.preventDefault();submit(input.value)});
+input.addEventListener('input',()=>{input.style.height='auto';input.style.height=Math.min(input.scrollHeight,140)+'px'});
+input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();form.requestSubmit()}});
+document.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>submit(b.textContent)));
+</script>
+</body>
+</html>
