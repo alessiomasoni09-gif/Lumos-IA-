@@ -543,67 +543,66 @@ async function syncCloudChats(){
 }
 
 /* ACCESSO GOOGLE */
-loginBtn.onclick=async()=>{
-  loginBtn.disabled=true;
-  loginBtn.textContent='Apertura accesso...';
-  try{
-    const {error}=await supabaseClient.auth.signInWithOAuth({
-      provider:'google',
-      options:{redirectTo:window.location.origin}
+/* ACCESSO GOOGLE — VERSIONE CORRETTA */
+
+loginBtn.addEventListener('click', async (event) => {
+  event.preventDefault();
+
+  if (loginBtn.disabled) return;
+
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'Collegamento a Google...';
+  setSyncStatus('Apertura della pagina di accesso Google...');
+
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+        queryParams: {
+          prompt: 'select_account'
+        },
+        skipBrowserRedirect: true
+      }
     });
-    if(error)throw error;
-  }catch(error){
-    alert('Errore durante l’accesso: '+error.message);
-    loginBtn.disabled=false;
-    loginBtn.textContent='Accedi con Google';
-  }
-};
 
-logoutBtn.onclick=async()=>{
-  logoutBtn.disabled=true;
-  const {error}=await supabaseClient.auth.signOut();
-  logoutBtn.disabled=false;
-  if(error)alert('Errore durante la disconnessione: '+error.message);
-};
+    if (error) throw error;
 
-supabaseClient.auth.onAuthStateChange((event,session)=>{
-  currentSession=session||null;
-  currentUser=session?.user||null;
-  updateAccountUI();
-  if(currentUser&&(event==='SIGNED_IN'||event==='INITIAL_SESSION'||event==='TOKEN_REFRESHED')){
-    setTimeout(async()=>{
-      await loadSubscription();
-      await syncCloudChats();
-      if(event==='SIGNED_IN')await checkCheckoutReturn();
-    },0);
-  }else if(!currentUser&&event==='SIGNED_OUT'){
-    currentPlan='free';
-    isOwner=false;
-    subscriptionStatus='inactive';
-    updatePlanUI();
-    conversations=readLocalChats('lumos_chats');
-    history=[];
-    activeId=null;
-    renderList();
-    welcomeScreen();
-    setSyncStatus('Hai effettuato la disconnessione.');
+    if (!data || !data.url) {
+      throw new Error('Google non ha restituito il link di accesso.');
+    }
+
+    window.location.assign(data.url);
+
+  } catch (error) {
+    console.error('Errore accesso Google:', error);
+
+    alert(
+      'Non è stato possibile avviare l’accesso Google.\n\n' +
+      error.message
+    );
+
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Accedi con Google';
+    setSyncStatus('Accesso non riuscito. Riprova.');
   }
 });
 
-async function initializeAuth(){
-  const {data,error}=await supabaseClient.auth.getSession();
-  if(error){setSyncStatus('Impossibile verificare la sessione.');return}
-  currentSession=data.session||null;
-  currentUser=data.session?.user||null;
-  updateAccountUI();
-  if(currentUser){
-    await loadSubscription();
-    await syncCloudChats();
-    await checkCheckoutReturn();
-  }else{
-    updatePlanUI();
+logoutBtn.onclick = async () => {
+  logoutBtn.disabled = true;
+
+  try {
+    const { error } = await supabaseClient.auth.signOut();
+
+    if (error) throw error;
+
+  } catch (error) {
+    console.error('Errore disconnessione:', error);
+    alert('Errore durante la disconnessione: ' + error.message);
+  } finally {
+    logoutBtn.disabled = false;
   }
-}
+};
 
 /* CRONOLOGIA */
 function renderList(){
