@@ -273,6 +273,15 @@ button{cursor:pointer}
 .assistant-content h3{font-size:16px}
 .assistant-content strong{color:#d9c4ff;font-weight:750}
 .assistant-content em{color:#d5c8ff}
+.assistant-content a{
+  color:#83baff;text-decoration:none;
+  border-bottom:1px solid #568dff88;
+  overflow-wrap:anywhere;transition:.2s;
+}
+.assistant-content a:hover{
+  color:#c5a5ff;border-color:#c5a5ff;
+  text-shadow:0 0 10px #8055ff88;
+}
 .assistant-content ul,.assistant-content ol{padding-left:24px;margin:9px 0 15px}
 .assistant-content li{padding:5px 0}
 .assistant-content li::marker{color:#a77aff}
@@ -531,6 +540,25 @@ function formatMessage(text){
     value=value.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
     value=value.replace(/__(.*?)__/g,'<strong>$1</strong>');
     value=value.replace(/\*(.*?)\*/g,'<em>$1</em>');
+
+    // LINK INTERNET CLICCABILI
+    value=value.replace(
+      /https?:\/\/[^\s<]+/g,
+      url=>{
+        const cleanUrl=url.replace(/[.,!?;:)\]]+$/,'');
+        const ending=url.slice(cleanUrl.length);
+
+        try{
+          const parsed=new URL(cleanUrl);
+          if(!['http:','https:'].includes(parsed.protocol))return url;
+
+          return '<a href="'+cleanUrl+'" target="_blank" rel="noopener noreferrer">'+cleanUrl+'</a>'+ending;
+        }catch(e){
+          return url;
+        }
+      }
+    );
+
     return value;
   }
 
@@ -558,6 +586,7 @@ function formatMessage(text){
   function closeList(){
     if(listType){html+=listType==='ul'?'</ul>':'</ol>';listType=null}
   }
+
   function closeParagraph(){
     if(paragraph.length){html+='<p>'+paragraph.join('<br>')+'</p>';paragraph=[]}
   }
@@ -571,12 +600,14 @@ function formatMessage(text){
     headers.forEach((cell,index)=>{
       table+='<th style="text-align:'+getAlignment(separators[index]||'---')+'">'+inlineFormat(cell)+'</th>';
     });
+
     table+='</tr></thead><tbody>';
 
     let index=start+2;
     while(index<lines.length&&lines[index].includes('|')&&lines[index].trim()!==''){
       const cells=splitTableRow(lines[index]);
       if(cells.length===1&&cells[0]==='')break;
+
       table+='<tr>';
       headers.forEach((header,column)=>{
         table+='<td style="text-align:'+getAlignment(separators[column]||'---')+'">'+inlineFormat(cells[column]??'')+'</td>';
@@ -584,6 +615,7 @@ function formatMessage(text){
       table+='</tr>';
       index++;
     }
+
     table+='</tbody></table></div>';
     return {html:table,nextIndex:index};
   }
@@ -595,31 +627,46 @@ function formatMessage(text){
     if(line.includes('|')&&nextLine.includes('|')&&isTableSeparator(nextLine)){
       closeParagraph();closeList();
       const result=createTable(i);
-      html+=result.html;i=result.nextIndex;continue;
+      html+=result.html;
+      i=result.nextIndex;
+      continue;
     }
 
     if(/^### (.+)$/.test(line)){
       closeParagraph();closeList();
-      html+='<h3>'+inlineFormat(line.replace(/^### /,''))+'</h3>';i++;continue;
+      html+='<h3>'+inlineFormat(line.replace(/^### /,''))+'</h3>';
+      i++;continue;
     }
+
     if(/^## (.+)$/.test(line)){
       closeParagraph();closeList();
-      html+='<h2>'+inlineFormat(line.replace(/^## /,''))+'</h2>';i++;continue;
+      html+='<h2>'+inlineFormat(line.replace(/^## /,''))+'</h2>';
+      i++;continue;
     }
+
     if(/^# (.+)$/.test(line)){
       closeParagraph();closeList();
-      html+='<h1>'+inlineFormat(line.replace(/^# /,''))+'</h1>';i++;continue;
+      html+='<h1>'+inlineFormat(line.replace(/^# /,''))+'</h1>';
+      i++;continue;
     }
+
     if(/^\s*([-*_])\1{2,}\s*$/.test(line)){
-      closeParagraph();closeList();html+='<hr>';i++;continue;
+      closeParagraph();closeList();
+      html+='<hr>';
+      i++;continue;
     }
 
     const unordered=line.match(/^\s*[-*+]\s+(.+)$/);
     const ordered=line.match(/^\s*\d+[.)]\s+(.+)$/);
+
     if(unordered||ordered){
       closeParagraph();
       const type=unordered?'ul':'ol';
-      if(listType!==type){closeList();html+=type==='ul'?'<ul>':'<ol>';listType=type}
+      if(listType!==type){
+        closeList();
+        html+=type==='ul'?'<ul>':'<ol>';
+        listType=type;
+      }
       html+='<li>'+inlineFormat(unordered?unordered[1]:ordered[1])+'</li>';
       i++;continue;
     }
@@ -629,17 +676,30 @@ function formatMessage(text){
       html+='<blockquote>'+inlineFormat(line.replace(/^&gt; /,''))+'</blockquote>';
       i++;continue;
     }
+
     if(/^%%CODE\d+%%$/.test(line.trim())){
-      closeParagraph();closeList();html+=line.trim();i++;continue;
+      closeParagraph();closeList();
+      html+=line.trim();
+      i++;continue;
     }
+
     if(line.trim()===''){
-      closeParagraph();closeList();i++;continue;
+      closeParagraph();closeList();
+      i++;continue;
     }
-    closeList();paragraph.push(inlineFormat(line));i++;
+
+    closeList();
+    paragraph.push(inlineFormat(line));
+    i++;
   }
 
-  closeList();closeParagraph();
-  codeBlocks.forEach((block,index)=>{html=html.replaceAll('%%CODE'+index+'%%',block)});
+  closeList();
+  closeParagraph();
+
+  codeBlocks.forEach((block,index)=>{
+    html=html.replaceAll('%%CODE'+index+'%%',block);
+  });
+
   return html;
 }
 
@@ -681,6 +741,7 @@ function bubble(text,role){
     copy.className='copy-btn';
     copy.type='button';
     copy.textContent='▢ Copia risposta';
+
     copy.onclick=async()=>{
       try{
         await navigator.clipboard.writeText(text);
@@ -741,7 +802,10 @@ async function submit(text){
     });
 
     const data=await response.json();
-    if(!response.ok)throw new Error(data.error||'Errore del server');
+
+    if(!response.ok){
+      throw new Error(data.error||'Errore del server');
+    }
 
     const answer=data.reply||'Non ho ricevuto una risposta.';
     history.push({role:'assistant',content:answer});
@@ -759,6 +823,7 @@ async function submit(text){
 
     const chat=conversations.find(c=>c.id===activeId);
     if(chat)chat.messages=history;
+
   }finally{
     typing.hidden=true;
     send.disabled=false;
