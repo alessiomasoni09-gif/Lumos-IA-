@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -42,7 +43,6 @@ button,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cu
 .plan-btn{width:100%;padding:9px;margin-top:6px;border-radius:9px;border:1px solid #9975ff;background:linear-gradient(110deg,#7139d7,#2859c5);color:white;font-size:11px;font-weight:700}
 .plan-btn.premium{background:linear-gradient(110deg,#a34be8,#245fd4);border-color:#c19aff}
 .plan-btn:disabled{opacity:.6}
-.owner-label{display:block;margin-top:7px;padding:7px;border-radius:8px;background:#34235e;color:#e0caff;text-align:center;font-size:10px;font-weight:800;letter-spacing:.7px}
 .topbar{height:68px;flex-shrink:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #ffffff12;background:#080b23aa;backdrop-filter:blur(18px)}
 .top-left{display:flex;align-items:center;gap:14px;min-width:0}
 .menu{width:41px;height:41px;flex-shrink:0;border-radius:12px;border:1px solid #6e65b966;background:#14183b;color:white;font-size:19px}
@@ -179,7 +179,6 @@ textarea::placeholder{color:#a1a1aa}
         <span class="plan-pill" id="planName">FREE</span>
       </div>
       <div class="plan-description" id="planDescription">50 messaggi ogni 2 ore · 1 allegato per messaggio.</div>
-      <div id="ownerLabel" class="owner-label" hidden>✦ PROPRIETARIO · PREMIUM GRATUITO</div>
       <button class="plan-btn" id="baseBtn">Passa a BASE · 2,99 €/mese</button>
       <button class="plan-btn premium" id="premiumBtn">Passa a PREMIUM · 4,99 €/mese</button>
       <div id="planStatus" class="plan-description" style="margin-top:9px;margin-bottom:0">Accedi per gestire il tuo piano.</div>
@@ -222,7 +221,7 @@ textarea::placeholder{color:#a1a1aa}
 <script>
 /* CONFIGURAZIONE */
 const SUPABASE_URL='https://vszyugcnkwcrcdfncary.supabase.co';
-const SUPABASE_KEY='sb_publishable_-LCZeeHAAdQqvuy6zdzOIfg_U1G1p133';
+const SUPABASE_KEY='sb_publishable_-LCZeeHAAdqQvuy6zdzOIfg_U1G1p133';
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 const OWNER_EMAILS=[
@@ -261,7 +260,6 @@ const inputHint=document.querySelector('#inputHint');
 const planName=document.querySelector('#planName');
 const planDescription=document.querySelector('#planDescription');
 const planStatus=document.querySelector('#planStatus');
-const ownerLabel=document.querySelector('#ownerLabel');
 const baseBtn=document.querySelector('#baseBtn');
 const premiumBtn=document.querySelector('#premiumBtn');
 
@@ -305,16 +303,15 @@ function isOwnerAccount(user){
   return !!user?.email&&OWNER_EMAILS.includes(user.email.toLowerCase());
 }
 
+/* INTERFACCIA ABBONAMENTI: IDENTICA PER TUTTI */
 function updatePlanUI(){
   const plan=PLANS[currentPlan]||PLANS.free;
-  planName.textContent=isOwner?'PREMIUM':plan.name;
-  planDescription.textContent=isOwner
-    ?'Accesso proprietario: Premium gratuito con utilizzo illimitato.'
-    :plan.description;
 
-  ownerLabel.hidden=!isOwner;
-  baseBtn.hidden=isOwner;
-  premiumBtn.hidden=isOwner;
+  planName.textContent=plan.name;
+  planDescription.textContent=plan.description;
+
+  baseBtn.hidden=false;
+  premiumBtn.hidden=false;
 
   if(!currentUser){
     planName.textContent='FREE';
@@ -322,11 +319,8 @@ function updatePlanUI(){
     planStatus.textContent='Accedi con Google per acquistare un piano.';
     baseBtn.disabled=false;
     premiumBtn.disabled=false;
-    return;
-  }
-
-  if(isOwner){
-    planStatus.textContent='Il tuo account proprietario ha Premium gratuito.';
+    baseBtn.textContent='Passa a BASE · 2,99 €/mese';
+    premiumBtn.textContent='Passa a PREMIUM · 4,99 €/mese';
     return;
   }
 
@@ -340,8 +334,14 @@ function updatePlanUI(){
 
   baseBtn.disabled=currentPlan==='base'||currentPlan==='premium';
   premiumBtn.disabled=currentPlan==='premium';
-  baseBtn.textContent=currentPlan==='base'?'✓ Piano BASE attivo':'Passa a BASE · 2,99 €/mese';
-  premiumBtn.textContent=currentPlan==='premium'?'✓ Piano PREMIUM attivo':'Passa a PREMIUM · 4,99 €/mese';
+
+  baseBtn.textContent=currentPlan==='base'
+    ?'✓ Piano BASE attivo'
+    :'Passa a BASE · 2,99 €/mese';
+
+  premiumBtn.textContent=currentPlan==='premium'
+    ?'✓ Piano PREMIUM attivo'
+    :'Passa a PREMIUM · 4,99 €/mese';
 }
 
 /* CARICAMENTO PIANO DA SUPABASE */
@@ -360,6 +360,7 @@ async function loadSubscription(){
     currentPlan='premium';
     subscriptionStatus='active';
     updatePlanUI();
+    renderAttachments();
     return;
   }
 
@@ -402,7 +403,7 @@ async function startCheckout(plan){
     return;
   }
   if(isOwner){
-    alert('Il tuo account proprietario ha già Premium gratuito!');
+    alert('Hai già accesso al piano Premium.');
     return;
   }
 
