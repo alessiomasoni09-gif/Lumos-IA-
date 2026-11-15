@@ -276,6 +276,12 @@ let recognition=null;
 let isRecording=false;
 let isDictating=false;
 
+/* Stato gestione autenticazione */
+let authInitializationPromise=null;
+let authProcessingPromise=null;
+let authProcessingUserId=null;
+let authReadyUserId=null;
+
 const MAX_FILE_SIZE=2*1024*1024;
 const MAX_TOTAL_SIZE=2*1024*1024;
 
@@ -288,6 +294,9 @@ function saveChats(){localStorage.setItem(storageKey(),JSON.stringify(conversati
 function setSyncStatus(text){syncStatus.textContent=text}
 
 function updateAccountUI(){
+  loginBtn.disabled=false;
+  loginBtn.textContent='Accedi con Google';
+
   if(currentUser){
     accountEmail.textContent=currentUser.email||'Account Google collegato';
     loginBtn.hidden=true;
@@ -509,6 +518,7 @@ async function syncCloudChats(){
 
       const {data:cloudChats,error}=await supabaseClient
         .from('lumos_chats').select('id,title,messages,updated_at')
+        .eq('user_id',currentUser.id)
         .order('updated_at',{ascending:false});
       if(error)throw error;
 
@@ -543,64 +553,198 @@ async function syncCloudChats(){
 }
 
 /* ACCESSO GOOGLE */
-/* ACCESSO GOOGLE — VERSIONE CORRETTA */
-
-loginBtn.addEventListener('click', async (event) => {
+loginBtn.addEventListener('click',async(event)=>{
   event.preventDefault();
 
-  if (loginBtn.disabled) return;
+  if(loginBtn.disabled)return;
 
-  loginBtn.disabled = true;
-  loginBtn.textContent = 'Collegamento a Google...';
+  loginBtn.disabled=true;
+  loginBtn.textContent='Collegamento a Google...';
   setSyncStatus('Apertura della pagina di accesso Google...');
 
-  try {
-    const { data, error } = await supabaseClient.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-        queryParams: {
-          prompt: 'select_account'
-        },
-        skipBrowserRedirect: true
+  try{
+    const {data,error}=await supabaseClient.auth.signInWithOAuth({
+      provider:'google',
+      options:{
+        redirectTo:window.location.origin+window.location.pathname,
+        queryParams:{prompt:'select_account'},
+        skipBrowserRedirect:true
       }
     });
 
-    if (error) throw error;
-
-    if (!data || !data.url) {
-      throw new Error('Google non ha restituito il link di accesso.');
-    }
+    if(error)throw error;
+    if(!data?.url)throw new Error('Google non ha restituito il link di accesso.');
 
     window.location.assign(data.url);
-
-  } catch (error) {
-    console.error('Errore accesso Google:', error);
-
-    alert(
-      'Non è stato possibile avviare l’accesso Google.\n\n' +
-      error.message
-    );
-
-    loginBtn.disabled = false;
-    loginBtn.textContent = 'Accedi con Google';
+  }catch(error){
+    console.error('Errore accesso Google:',error);
+    alert('Non è stato possibile avviare l’accesso Google.\n\n'+error.message);
+    loginBtn.disabled=false;
+    loginBtn.textContent='Accedi con Google';
     setSyncStatus('Accesso non riuscito. Riprova.');
   }
 });
 
-logoutBtn.onclick = async () => {
-  logoutBtn.disabled = true;
+/* GESTIONE DELLA SESSIONE AUTENTICATA */
+async function processAuthenticatedSession(session){
+  if(!session?.user)return;
 
-  try {
-    const { error } = await supabaseClient.auth.signOut();
+  currentSession=session;
+  currentUser=session.user;
+  updateAccountUI();
 
-    if (error) throw error;
+  const userId=session.user.id;
 
-  } catch (error) {
-    console.error('Errore disconnessione:', error);
-    alert('Errore durante la disconnessione: ' + error.message);
-  } finally {
-    logoutBtn.disabled = false;
+  if(authReadyUserId===userId)return;
+
+  if(authProcessingUserId===userId&&authProcessingPromise){
+    return authProcessingPromise;
+  }
+
+  authProcessingUserId=userId;
+
+  const task=(async()=>{
+    await loadSubscription();
+
+    if(currentUser?.id!==userId)return;
+
+    await syncCloudChats();
+
+    if(currentUser?.id!==userId)return;
+
+    await checkCheckoutReturn();
+
+    if(currentUser?.id===userId){
+      authReadyUserId=userId;
+      setSyncStatus('✓ Account Google collegato e pronto.');
+    }
+  })();
+
+  authProcessingPromise=task;
+
+  try{
+    await task;
+  }catch(error){
+    console.error('Errore durante la preparazione dell’account:',error);
+    if(currentUser?.id===userId){
+      setSyncStatus('Account collegato, ma si è verificato un problema durante la sincronizzazione.');
+    }
+  }finally{
+    if(authProcessingPromise===task){
+      authProcessingPromise=null;
+    }
+  }
+}
+
+/* GESTIONE DISCONNESSIONE */
+function handleSignedOut(){
+  currentSession=null;
+  currentUser=null;
+
+  authProcessingUserId=null;
+  authReadyUserId=null;
+  authProcessingPromise=null;
+  syncPromise=null;
+
+  currentPlan='free';
+  isOwner=false;
+  subscriptionStatus='inactive';
+
+  conversations=readLocalChats('lumos_chats');
+  history=[];
+  activeId=null;
+
+  updateAccountUI();
+  updatePlanUI();
+  renderList();
+  welcomeScreen();
+  renderAttachments();
+
+  setSyncStatus('Disconnesso. Le nuove chat saranno salvate su questo dispositivo.');
+}
+
+/* ASCOLTO EVENTI SUPABASE */
+supabaseClient.auth.onAuthStateChange((event,session)=>{
+  currentSession=session||null;
+  currentUser=session?.user||null;
+
+  updateAccountUI();
+
+  /*
+   * Non eseguiamo operazioni Supabase direttamente dentro il callback
+   * di autenticazione: le programmiamo fuori dal callback per evitare
+   * blocchi o attese circolari.
+   */
+  setTimeout(async()=>{
+    if(event==='SIGNED_OUT'||!session?.user){
+      if(event==='SIGNED_OUT'||event==='INITIAL_SESSION'){
+        handleSignedOut();
+      }
+      return;
+    }
+
+    if([
+      'SIGNED_IN',
+      'TOKEN_REFRESHED',
+      'INITIAL_SESSION',
+      'USER_UPDATED'
+    ].includes(event)){
+      await processAuthenticatedSession(session);
+    }
+  },0);
+});
+
+/* INIZIALIZZAZIONE AUTENTICAZIONE */
+function initializeAuth(){
+  if(authInitializationPromise)return authInitializationPromise;
+
+  authInitializationPromise=(async()=>{
+    try{
+      const {data,error}=await supabaseClient.auth.getSession();
+
+      if(error)throw error;
+
+      const session=data?.session||null;
+
+      if(session?.user){
+        currentSession=session;
+        currentUser=session.user;
+        updateAccountUI();
+
+        await processAuthenticatedSession(session);
+      }else{
+        handleSignedOut();
+      }
+    }catch(error){
+      console.error('Errore inizializzazione autenticazione:',error);
+
+      currentSession=null;
+      currentUser=null;
+      currentPlan='free';
+      isOwner=false;
+      subscriptionStatus='inactive';
+
+      updateAccountUI();
+      updatePlanUI();
+      setSyncStatus('Impossibile verificare l’accesso. Ricarica la pagina e riprova.');
+    }
+  })();
+
+  return authInitializationPromise;
+}
+
+logoutBtn.onclick=async()=>{
+  logoutBtn.disabled=true;
+
+  try{
+    const {error}=await supabaseClient.auth.signOut();
+    if(error)throw error;
+    handleSignedOut();
+  }catch(error){
+    console.error('Errore disconnessione:',error);
+    alert('Errore durante la disconnessione: '+error.message);
+  }finally{
+    logoutBtn.disabled=false;
   }
 };
 
