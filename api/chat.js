@@ -1,4 +1,21 @@
 
+import crypto from "node:crypto";
+
+const SUPABASE_URL = "https://vszyugcnkwcrcdfncary.supabase.co";
+
+const WINDOW_MINUTES = 120;
+
+const OWNER_EMAILS = [
+  "alessiomasoni09@gmail.com",
+  "alessiomasoni12@gmail.com"
+];
+
+function isOwner(user) {
+  return OWNER_EMAILS.includes(
+    String(user?.email || "").toLowerCase().trim()
+  );
+}
+
 const SYSTEM_PROMPT = `Sei Lumos IA, un assistente virtuale cordiale, chiaro e competente.
 Rispondi in italiano salvo richiesta diversa.
 Spiega in modo semplice quando l'utente è uno studente.
@@ -22,6 +39,21 @@ Quando ricevi immagini:
 Quando ricevi una trascrizione audio:
 - Considerala come il messaggio dell'utente.
 - Rispondi normalmente al suo contenuto.`;
+
+const PLANS = {
+  free: {
+    messages: 50,
+    attachments: 1
+  },
+  base: {
+    messages: 200,
+    attachments: 3
+  },
+  premium: {
+    messages: 1000,
+    attachments: 5
+  }
+};
 
 function needsWebSearch(message) {
   const pattern =
@@ -61,7 +93,110 @@ async function searchWeb(query) {
   })).filter((item) => item.url && item.content);
 }
 
-// Converte un allegato Base64 in un file utilizzabile dal server.
+async function getAuthenticatedUser(req) {
+  const authorization = req.headers.authorization || "";
+  const accessToken = authorization.replace(/^Bearer\s+/i, "").trim();
+
+  if (!accessToken) {
+    return null;
+  }
+
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: {
+      apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${accessToken}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error("Sessione non valida. Effettua nuovamente l'accesso.");
+  }
+
+  const user = await response.json();
+
+  if (!user.id) {
+    throw new Error("Impossibile verificare l'utente.");
+  }
+
+  return user;
+}
+
+async function getUserPlan(userId) {
+  if (!userId) return "free";
+
+  const url =
+    `${SUPABASE_URL}/rest/v1/lumos_subscriptions` +
+    `?user_id=eq.${encodeURIComponent(userId)}` +
+    "&select=plan,status&limit=1";
+
+  const response = await fetch(url, {
+    headers: {
+      apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+    }
+  });
+
+  if (!response.ok) {
+    console.error("Errore lettura abbonamento:", response.status);
+    throw new Error("Impossibile verificare il tuo abbonamento.");
+  }
+
+  const rows = await response.json();
+  const subscription = rows?.[0];
+
+  if (
+    subscription &&
+    ["active", "trialing"].includes(subscription.status) &&
+    ["base", "premium"].includes(subscription.plan)
+  ) {
+    return subscription.plan;
+  }
+
+  return "free";
+}
+
+async function consumeMessage(userId, req, limit) {
+  const forwardedFor = req.headers["x-forwarded-for"];
+  const realIp = req.headers["x-real-ip"];
+
+  const ip = String(
+    realIp ||
+    (typeof forwardedFor === "string"
+      ? forwardedFor.split(",")[0]
+      : "unknown")
+  ).trim();
+
+  const ipHash = crypto
+    .createHash("sha256")
+    .update(`${process.env.SUPABASE_SERVICE_ROLE_KEY}:${ip}`)
+    .digest("hex");
+
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/rpc/consume_lumos_message`,
+    {
+      method: "POST",
+      headers: {
+        apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        p_user_id: userId,
+        p_ip_hash: ipHash,
+        p_limit: limit,
+        p_window_minutes: WINDOW_MINUTES
+      })
+    }
+  );
+
+  if (!response.ok) {
+    console.error("Errore conteggio messaggi:", response.status);
+    throw new Error("Non è stato possibile verificare il limite dei messaggi.");
+  }
+
+  return response.json();
+}
+
 function decodeAttachment(attachment) {
   if (
     !attachment ||
@@ -82,7 +217,6 @@ function decodeAttachment(attachment) {
   const mimeType = match[1].toLowerCase();
   const buffer = Buffer.from(match[2], "base64");
 
-  // Limite di sicurezza: 2,5 MB per allegato.
   if (!buffer.length || buffer.length > 2.5 * 1024 * 1024) {
     throw new Error("Allegato troppo grande. Limite: 2,5 MB.");
   }
@@ -95,7 +229,6 @@ function decodeAttachment(attachment) {
   };
 }
 
-// Trascrive un audio utilizzando Groq Whisper.
 async function transcribeAudio(file) {
   const allowedAudioTypes = [
     "audio/webm",
@@ -115,7 +248,6 @@ async function transcribeAudio(file) {
   }
 
   const extension = file.name.split(".").pop() || "webm";
-
   const form = new FormData();
 
   form.append(
@@ -147,7 +279,6 @@ async function transcribeAudio(file) {
 
   if (!response.ok) {
     console.error("Errore trascrizione:", result);
-
     throw new Error("Non sono riuscito a trascrivere l'audio.");
   }
 
@@ -163,15 +294,17 @@ async function transcribeAudio(file) {
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
-
     return res.status(405).json({
       error: "Metodo non consentito."
     });
   }
 
-  if (!process.env.GROQ_API_KEY) {
+  if (
+    !process.env.GROQ_API_KEY ||
+    !process.env.SUPABASE_SERVICE_ROLE_KEY
+  ) {
     return res.status(500).json({
-      error: "Manca la chiave API sul server."
+      error: "Configurazione del server incompleta."
     });
   }
 
@@ -211,32 +344,55 @@ export default async function handler(req, res) {
 
     const lastMessage = messages[messages.length - 1].content;
 
-    // Gli allegati vengono inviati insieme all'ultimo messaggio.
+    // Verifica l'identità e riconosce i proprietari.
+    const user = await getAuthenticatedUser(req);
+    const owner = isOwner(user);
+
+    const plan = owner
+      ? "premium"
+      : await getUserPlan(user?.id || null);
+
+    const planSettings = PLANS[plan] || PLANS.free;
+
+    // Controlla gli allegati consentiti dal piano.
     const attachments = Array.isArray(body.attachments)
       ? body.attachments
       : [];
 
-    if (attachments.length > 5) {
-      return res.status(400).json({
-        error: "Puoi inviare massimo 5 allegati per volta."
+    if (attachments.length > planSettings.attachments) {
+      return res.status(403).json({
+        error: `Il tuo piano ${plan.toUpperCase()} consente massimo ${planSettings.attachments} allegati per messaggio.`
       });
     }
 
     const decodedFiles = attachments.map(decodeAttachment);
 
+    // I proprietari non consumano il limite ordinario.
+    const usage = owner
+      ? "illimitato"
+      : await consumeMessage(
+          user?.id || null,
+          req,
+          planSettings.messages
+        );
+
+    if (usage === 0) {
+      return res.status(429).json({
+        error: `Hai raggiunto il limite del piano ${plan.toUpperCase()}. Potrai inviare altri messaggi quando si rinnova il limite delle 2 ore.`,
+        plan,
+        limit: planSettings.messages,
+        windowMinutes: WINDOW_MINUTES
+      });
+    }
+
     let transcript = "";
     let extraText = "";
     const images = [];
 
-    // Gestione allegati.
     for (const file of decodedFiles) {
       if (file.mimeType.startsWith("audio/")) {
         transcript += await transcribeAudio(file) + "\n";
       } else if (file.mimeType.startsWith("image/")) {
-        if (images.length >= 3) {
-          throw new Error("Puoi inviare massimo 3 immagini per messaggio.");
-        }
-
         images.push(file);
       } else if (file.mimeType === "text/plain") {
         extraText +=
@@ -257,17 +413,16 @@ export default async function handler(req, res) {
       extraText
     ].join("");
 
-    // Aggiorna il messaggio utente con il testo trascritto e gli eventuali documenti.
-    messages[messages.length - 1].content = finalUserText.slice(0, 30000);
+    messages[messages.length - 1].content =
+      finalUserText.slice(0, 30000);
 
     const shouldSearch = needsWebSearch(finalUserText);
-
     let webContext = "";
 
     if (shouldSearch) {
       if (!process.env.TAVILY_API_KEY) {
         return res.status(500).json({
-          error: "La ricerca Internet non è ancora configurata. Aggiungi TAVILY_API_KEY nelle variabili ambiente di Vercel."
+          error: "La ricerca Internet non è ancora configurata."
         });
       }
 
@@ -296,7 +451,6 @@ Dillo chiaramente all'utente e non inventare fonti.
       }
     }
 
-    // Se ci sono immagini, usa un modello con capacità visive.
     const selectedModel = images.length
       ? (process.env.GROQ_VISION_MODEL || "qwen/qwen3.8-27b")
       : (process.env.GROQ_MODEL || "openai/gpt-oss-20b");
@@ -309,7 +463,6 @@ Dillo chiaramente all'utente e non inventare fonti.
       ...messages
     ];
 
-    // Aggiunge le immagini al messaggio finale.
     if (images.length > 0) {
       const lastIndex = conversationMessages.length - 1;
 
@@ -338,7 +491,6 @@ Dillo chiaramente all'utente e non inventare fonti.
       stream: false
     };
 
-    // Mantiene i parametri di ragionamento per il modello testuale originale.
     if (images.length === 0) {
       requestBody.reasoning_effort = "low";
       requestBody.include_reasoning = false;
@@ -398,7 +550,11 @@ Dillo chiaramente all'utente e non inventare fonti.
 
     return res.status(200).json({
       reply,
-      transcript: transcript.trim()
+      transcript: transcript.trim(),
+      plan,
+      owner,
+      usage,
+      limit: owner ? "illimitato" : planSettings.messages
     });
 
   } catch (error) {
