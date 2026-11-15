@@ -8,25 +8,29 @@
 <title>Lumos IA — Galaxy Experience</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
 
 <style>
 :root{--bg:#050619;--purple:#9b5cff;--blue:#258cff;--text:#f5f3ff;--muted:#a4a9d0}
 *{box-sizing:border-box}
-body{margin:0;height:100vh;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,system-ui,sans-serif}
-button,textarea{font:inherit}button{cursor:pointer}
-.app{height:100vh;display:flex;position:relative}
+body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,system-ui,sans-serif}
+button,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+.app{height:100vh;height:100dvh;display:flex;position:relative}
 .main{min-width:0;flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 105%,#123c9b77,transparent 48%),radial-gradient(ellipse at 12% 35%,#6018a955,transparent 38%),radial-gradient(ellipse at 85% 30%,#102c9d66,transparent 40%),linear-gradient(145deg,#050619,#080b2c 55%,#030718)}
 .main:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.6;background-image:radial-gradient(2px 2px at 10% 20%,#fff,transparent),radial-gradient(1px 1px at 25% 65%,#b9a3ff,transparent),radial-gradient(2px 2px at 40% 12%,#fff,transparent),radial-gradient(1px 1px at 55% 40%,#fff,transparent),radial-gradient(2px 2px at 72% 15%,#b9caff,transparent),radial-gradient(1px 1px at 90% 65%,#fff,transparent);background-size:260px 230px}
 
 /* SIDEBAR */
-.sidebar{width:290px;flex-shrink:0;z-index:5;display:flex;flex-direction:column;padding:24px 18px;background:linear-gradient(180deg,#070b22f5,#09091ff5);border-right:1px solid #7464ff66;box-shadow:8px 0 50px #0007;transition:width .3s,padding .3s;overflow:hidden}
+.sidebar{width:290px;flex-shrink:0;z-index:20;display:flex;flex-direction:column;padding:24px 18px;background:linear-gradient(180deg,#070b22f5,#09091ff5);border-right:1px solid #7464ff66;box-shadow:8px 0 50px #0007;transition:width .3s,padding .3s,transform .3s;overflow:hidden}
 .sidebar.collapsed{width:0;padding:0;border:0}
 .brand{display:flex;align-items:center;gap:13px;margin-bottom:35px;white-space:nowrap}
 .logo{width:52px;height:52px;display:grid;place-items:center;font-size:35px;flex-shrink:0;border-radius:17px;background:radial-gradient(circle,#a9baff,#6635ff 55%,#180d56);border:1px solid #a98cff;box-shadow:0 0 25px #784bff,0 0 55px #385dff55}
 .brand h1{margin:0;font-size:23px}.brand h1 span{color:#a978ff}
 .brand p{margin:4px 0 0;color:#aaa6d8;font-size:10px}
-.new-chat{padding:15px 13px;border:1px solid #a56cff;border-radius:13px;color:white;text-align:left;background:linear-gradient(110deg,#7028e9,#253ed0);box-shadow:0 0 25px #713cff55;white-space:nowrap;transition:.2s}
-.new-chat:hover{transform:translateY(-2px);box-shadow:0 0 30px #8050ff88}
+.new-chat{padding:15px 13px;border:1px solid #a56cff;border-radius:13px;color:white;text-align:left;background:linear-gradient(110deg,#7028e9,#253ed0);box-shadow:0 0 25px #713cff55;white-space:nowrap}
+.new-chat:hover{transform:translateY(-2px)}
 .side-label{margin:25px 8px 13px;color:#8e91c2;font-size:11px;letter-spacing:1.5px;text-transform:uppercase}
 #chatList{flex:1;overflow-y:auto;min-height:0}
 .chat-item{width:100%;padding:13px 11px;margin-bottom:5px;border:1px solid transparent;border-radius:11px;background:transparent;color:#c6c8e9;text-align:left;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -43,12 +47,12 @@ button,textarea{font:inherit}button{cursor:pointer}
 
 /* TOPBAR */
 .topbar{height:68px;flex-shrink:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #ffffff12;background:#080b23aa;backdrop-filter:blur(18px)}
-.top-left{display:flex;align-items:center;gap:14px}
-.menu{width:41px;height:41px;border-radius:12px;border:1px solid #6e65b966;background:#14183b;color:white;font-size:19px}
-.top-title{font-size:13px;color:#d8d7ff}
-.status{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:30px;border:1px solid #36b78a55;background:#103c3444;color:#8fffd0;font-size:11px}
+.top-left{display:flex;align-items:center;gap:14px;min-width:0}
+.menu{width:41px;height:41px;flex-shrink:0;border-radius:12px;border:1px solid #6e65b966;background:#14183b;color:white;font-size:19px}
+.top-title{font-size:13px;color:#d8d7ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:30px;border:1px solid #36b78a55;background:#103c3444;color:#8fffd0;font-size:11px;flex-shrink:0}
 .dot{width:8px;height:8px;border-radius:50%;background:#3cffad;box-shadow:0 0 12px #3cffad;animation:pulse 1.8s infinite}
-@keyframes pulse{50%{opacity:.4;box-shadow:0 0 3px #3cffad}}
+@keyframes pulse{50%{opacity:.4}}
 
 /* MESSAGGI */
 #messages{flex:1;min-height:0;overflow-y:auto;position:relative;z-index:1;padding:30px 24px;display:flex;flex-direction:column;gap:23px;scroll-behavior:smooth}
@@ -69,15 +73,14 @@ button,textarea{font:inherit}button{cursor:pointer}
 
 /* MESSAGGI UTENTE */
 .user{align-self:flex-end;max-width:min(75%,760px);padding:14px 19px;border-radius:19px 19px 5px 19px;background:linear-gradient(125deg,#783ce0,#236fd1);border:1px solid #b59aff66;box-shadow:0 5px 25px #563aff44;color:white;font-size:14px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;animation:userIn .35s ease-out both}
+.user-attachments{margin-top:9px;padding-top:8px;border-top:1px solid #ffffff33;font-size:12px;color:#eeeaff}
 @keyframes userIn{from{opacity:0;transform:translateX(15px) scale(.97)}to{opacity:1;transform:translateX(0) scale(1)}}
 
 /* MESSAGGI LUMOS */
 .assistant-row{display:flex;align-items:flex-start;gap:12px;width:min(850px,95%);animation:lumosIn .55s cubic-bezier(.16,1,.3,1) both}
 @keyframes lumosIn{from{opacity:0;transform:translateY(20px) scale(.985);filter:blur(5px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
-.ai-avatar{width:38px;height:38px;flex-shrink:0;display:grid;place-items:center;border-radius:13px;font-size:23px;color:white;background:linear-gradient(135deg,#a45aff,#276dff);border:1px solid #c3a0ff;box-shadow:0 0 18px #8855ff88;transition:.3s}
-.ai-avatar:hover{transform:rotate(12deg) scale(1.08)}
-.assistant{min-width:0;flex:1;position:relative;overflow:hidden;padding:18px 22px;border-radius:5px 19px 19px 19px;background:radial-gradient(ellipse at 0% 0%,#7950ff18,transparent 55%),linear-gradient(135deg,#171b43f5,#101a39f5);border:1px solid #8873e988;box-shadow:0 8px 30px #0004,0 0 22px #8055ff16;transition:.3s}
-.assistant:hover{border-color:#a58affbb;box-shadow:0 8px 35px #0005,0 0 28px #8055ff30}
+.ai-avatar{width:38px;height:38px;flex-shrink:0;display:grid;place-items:center;border-radius:13px;font-size:23px;color:white;background:linear-gradient(135deg,#a45aff,#276dff);border:1px solid #c3a0ff;box-shadow:0 0 18px #8855ff88}
+.assistant{min-width:0;flex:1;position:relative;overflow:hidden;padding:18px 22px;border-radius:5px 19px 19px 19px;background:radial-gradient(ellipse at 0% 0%,#7950ff18,transparent 55%),linear-gradient(135deg,#171b43f5,#101a39f5);border:1px solid #8873e988;box-shadow:0 8px 30px #0004,0 0 22px #8055ff16}
 .assistant::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,#c28aff,#397fff,transparent)}
 .assistant-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #ffffff12}
 .assistant-name{font-size:12px;letter-spacing:.5px;font-weight:750;background:linear-gradient(90deg,#c69aff,#6dbbff);color:transparent;background-clip:text}
@@ -87,65 +90,107 @@ button,textarea{font:inherit}button{cursor:pointer}
 .assistant-content h1,.assistant-content h2,.assistant-content h3{color:#c5a5ff;line-height:1.4;margin:20px 0 10px;padding-bottom:7px;border-bottom:1px solid #9271ff30}
 .assistant-content h1{font-size:22px}.assistant-content h2{font-size:19px}.assistant-content h3{font-size:16px}
 .assistant-content strong{color:#d9c4ff;font-weight:750}.assistant-content em{color:#d5c8ff}
-.assistant-content a{color:#83baff;text-decoration:none;border-bottom:1px solid #568dff88;overflow-wrap:anywhere;transition:.2s}
-.assistant-content a:hover{color:#c5a5ff;border-color:#c5a5ff;text-shadow:0 0 10px #8055ff88}
+.assistant-content a{color:#83baff;text-decoration:none;border-bottom:1px solid #568dff88;overflow-wrap:anywhere}
 .assistant-content ul,.assistant-content ol{padding-left:24px;margin:9px 0 15px}
 .assistant-content li{padding:5px 0}.assistant-content li::marker{color:#a77aff}
 .assistant-content code{background:#29224c;color:#d3baff;border:1px solid #8a68cc55;border-radius:5px;padding:2px 5px;font-size:12px}
-.assistant-content pre{padding:15px;border-radius:11px;overflow-x:auto;background:#080b20;border:1px solid #6652a866;box-shadow:inset 0 0 20px #0005;scrollbar-width:thin;scrollbar-color:#8058e8 #111633}
+.assistant-content pre{padding:15px;border-radius:11px;overflow-x:auto;background:#080b20;border:1px solid #6652a866}
 .assistant-content pre code{padding:0;border:0;background:none;color:#d9d4ff}
 .assistant-content blockquote{border-left:3px solid #9870ff;margin:12px 0;padding:7px 13px;color:#c5c2e7;background:#ffffff08}
 .assistant-content hr{border:0;border-top:1px solid #7765ce77;margin:18px 0}
 
 /* TABELLE */
-.table-wrap{width:100%;max-width:100%;overflow-x:auto;margin:17px 0 21px;border:1px solid #8668ff99;border-radius:13px;background:#090d27;box-shadow:0 0 18px #7650ff22;scrollbar-width:thin;scrollbar-color:#8058e8 #111633}
+.table-wrap{width:100%;max-width:100%;overflow-x:auto;margin:17px 0 21px;border:1px solid #8668ff99;border-radius:13px;background:#090d27}
 .galaxy-table{width:100%;min-width:440px;border-collapse:separate;border-spacing:0;font-size:13px;line-height:1.65}
 .galaxy-table th{padding:13px 15px;text-align:left;color:white;font-weight:750;background:linear-gradient(110deg,#6634c9,#2458bd);border-bottom:1px solid #a78aff88}
 .galaxy-table td{padding:12px 15px;color:#e4e2ff;border-bottom:1px solid #6654a633;border-right:1px solid #6654a622;vertical-align:top}
-.galaxy-table td:last-child,.galaxy-table th:last-child{border-right:0}
 .galaxy-table tbody tr:nth-child(odd){background:#171b3d}.galaxy-table tbody tr:nth-child(even){background:#101630}
-.galaxy-table tbody tr:hover{background:linear-gradient(90deg,#39246c88,#173d7788)}
 .galaxy-table tbody tr:last-child td{border-bottom:0}
-.galaxy-table td strong{color:#c9aaff}
-.table-wrap::-webkit-scrollbar{height:7px}
-.table-wrap::-webkit-scrollbar-thumb{background:linear-gradient(90deg,#8d51ed,#327bff);border-radius:10px}
 
 /* AZIONI */
 .message-actions{display:flex;gap:7px;margin-top:12px;padding-top:9px;border-top:1px solid #ffffff10}
-.copy-btn{border:1px solid #7968bd55;border-radius:8px;padding:6px 10px;color:#bcb5e9;background:#17183a;font-size:11px;transition:.2s}
-.copy-btn:hover{background:#30205c;border-color:#a47aff;color:white}
+.copy-btn{border:1px solid #7968bd55;border-radius:8px;padding:6px 10px;color:#bcb5e9;background:#17183a;font-size:11px}
+.copy-btn:hover{background:#30205c;color:white}
 .typing{z-index:2;padding:0 28px 12px;color:#bba0ff;font-size:12px}
 .typing span{animation:blink 1.2s infinite}
 @keyframes blink{50%{opacity:.25}}
 
-/* INPUT */
+/* AREA INPUT */
 .input-area{z-index:2;padding:12px 24px 7px}
-.input-box{width:min(850px,100%);margin:auto;display:flex;align-items:flex-end;gap:10px;padding:10px 12px;border-radius:23px;border:1px solid #9272ff;background:linear-gradient(120deg,#15183bee,#101b3bee);box-shadow:0 0 25px #7552ff33,0 0 55px #276aff1a;backdrop-filter:blur(20px)}
+.input-box{width:min(850px,100%);margin:auto;display:flex;align-items:flex-end;gap:9px;padding:10px 12px;border-radius:23px;border:1px solid #9272ff;background:linear-gradient(120deg,#15183bee,#101b3bee);box-shadow:0 0 25px #7552ff33,0 0 55px #276aff1a;backdrop-filter:blur(20px)}
 .input-box:focus-within{border-color:#bca0ff;box-shadow:0 0 0 3px #9874ff22,0 0 35px #8154ff55}
-textarea{flex:1;min-width:0;resize:none;min-height:43px;max-height:140px;background:transparent;border:0;outline:0;color:white;padding:11px 12px;font-size:14px}
+textarea{flex:1;min-width:0;resize:none;min-height:43px;max-height:140px;background:transparent;border:0;outline:0;color:white;padding:11px 8px;font-size:14px}
 textarea::placeholder{color:#999dc4}
 .send{width:47px;height:47px;flex-shrink:0;border:1px solid #c0a2ff;border-radius:15px;color:white;font-size:22px;background:linear-gradient(135deg,#a14cff,#356fff);box-shadow:0 0 22px #8050ff88}
 .send:disabled{opacity:.5;cursor:not-allowed}
+
+/* NUOVI PULSANTI */
+.tool-btn{width:43px;height:43px;flex-shrink:0;border:1px solid #7969bd88;border-radius:14px;background:#191b42;color:#d9caff;font-size:19px;display:grid;place-items:center;transition:.2s}
+.tool-btn:hover{border-color:#b89aff;background:#30205c;box-shadow:0 0 15px #8050ff55}
+.tool-btn.recording{background:#721e54;border-color:#ff70ad;color:white;animation:recordPulse 1s infinite}
+@keyframes recordPulse{50%{box-shadow:0 0 0 6px #ff4b8b22}}
+.tool-btn.listening{background:#253e82;border-color:#7cbaff;color:white}
+#fileInput{display:none}
+.attachments-preview{width:min(850px,100%);margin:0 auto 8px;display:flex;flex-wrap:wrap;gap:7px}
+.attachment-chip{display:flex;align-items:center;gap:8px;max-width:100%;padding:7px 10px;border:1px solid #7968bd88;border-radius:11px;background:#17183a;color:#e4d9ff;font-size:11px}
+.attachment-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px}
+.remove-attachment{border:0;background:transparent;color:#ff9ab9;font-size:17px;padding:0 2px}
+.input-hint{width:min(850px,100%);margin:6px auto 0;color:#9995c3;font-size:10px}
 .disclaimer{z-index:2;padding:8px 10px 13px;text-align:center;color:#888bb6;font-size:10px}
+.sidebar-backdrop{display:none}
 
 /* MOBILE */
 @media(max-width:850px){
-.sidebar{position:absolute;left:0;top:0;bottom:0;width:290px;box-shadow:15px 0 55px #000b}
-.sidebar.collapsed{width:0}
+ body{height:100dvh}
+ .app{height:100dvh;overflow:hidden}
+ .sidebar{position:fixed;left:0;top:0;bottom:0;width:min(310px,86vw);height:100dvh;z-index:21;transform:translateX(0);transition:transform .28s ease;overflow-y:auto}
+ .sidebar.collapsed{width:min(310px,86vw);padding:24px 18px;border-right:1px solid #7464ff66;transform:translateX(-105%)}
+ .sidebar-backdrop{display:block;position:fixed;inset:0;z-index:20;background:#020311b8;backdrop-filter:blur(4px);opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
+ body.menu-open .sidebar-backdrop{opacity:1;visibility:visible}
+ .main{width:100%;height:100%;min-width:0}
+ .topbar{height:60px;min-height:60px;padding:0 12px;gap:8px}
+ .top-left{gap:10px}
+ .menu{width:42px;height:42px}
+ .top-title{font-size:11px}
+ #messages{padding:17px 12px;gap:17px}
+ .welcome{padding:15px 5px}
+ .welcome h2{font-size:clamp(29px,8vw,38px)}
+ .welcome-icon{width:85px;height:85px;font-size:53px}
+ .welcome p{font-size:12px}
+ .chips{gap:9px}
+ .chip{min-width:0;min-height:80px;padding:12px;font-size:12px}
+ .user{max-width:90%;padding:12px 14px;font-size:13px}
+ .assistant-row{width:100%;gap:8px}
+ .ai-avatar{width:31px;height:31px;font-size:18px}
+ .assistant{padding:13px 12px}
+ .assistant-content{font-size:13px;line-height:1.75}
+ .assistant-content h1{font-size:20px}.assistant-content h2{font-size:17px}.assistant-content h3{font-size:15px}
+ .assistant-content pre{max-width:100%;font-size:12px}
+ .table-wrap{-webkit-overflow-scrolling:touch}
+ .input-area{padding:8px 10px 3px;padding-bottom:max(5px,env(safe-area-inset-bottom))}
+ .input-box{gap:6px;padding:7px;border-radius:19px}
+ textarea{min-height:43px;max-height:115px;padding:11px 5px;font-size:16px}
+ .send{width:43px;height:43px;border-radius:13px;font-size:20px}
+ .tool-btn{width:40px;height:40px;border-radius:12px;font-size:17px}
+ .disclaimer{padding:5px 8px 8px;font-size:9px}
+ .typing{padding:0 15px 8px;font-size:11px}
+ .input-hint{padding-left:4px}
 }
-@media(max-width:600px){
-.topbar{height:59px;padding:0 12px}.top-title{font-size:11px}
-#messages{padding:16px 11px}.welcome{padding:12px 2px}
-.welcome-icon{width:82px;height:82px;font-size:52px}
-.welcome h2{font-size:30px}.welcome-subtitle{font-size:14px!important}
-.chips{grid-template-columns:1fr;gap:9px}.chip{min-height:65px;padding:12px}
-.chip span{display:inline;margin-right:8px}
-.user{max-width:92%}.assistant-row{width:100%;gap:8px}
-.ai-avatar{width:32px;height:32px;font-size:19px}
-.assistant{padding:14px}.assistant-content{font-size:13.5px;line-height:1.8}
-.galaxy-table{font-size:12px;min-width:400px}
-.galaxy-table th,.galaxy-table td{padding:10px 11px}
-.input-area{padding:9px 10px 4px}
+@media(max-width:390px){
+ .top-title{max-width:155px}
+ .status{padding:6px 7px;font-size:9px}
+ .chips{grid-template-columns:1fr}
+ .chip{min-height:62px}
+ .chip span{display:inline;margin-right:7px}
+ .input-box{gap:4px;padding:6px}
+ .tool-btn{width:36px;height:38px}
+ .send{width:40px;height:40px}
+}
+@media(max-width:850px) and (orientation:landscape){
+ .welcome-icon{width:60px;height:60px;font-size:38px;margin-bottom:10px}
+ .welcome{padding:5px}
+ .welcome h2{font-size:26px}
+ .chips{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:12px}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
@@ -154,7 +199,7 @@ textarea::placeholder{color:#999dc4}
 <body>
 <div class="app">
 
-<aside class="sidebar" id="sidebar">
+<aside class="sidebar collapsed" id="sidebar">
   <div class="brand">
     <div class="logo">✦</div>
     <div><h1>Lumos <span>IA</span></h1><p>LA TUA INTELLIGENZA ARTIFICIALE</p></div>
@@ -175,6 +220,8 @@ textarea::placeholder{color:#999dc4}
   <div class="sidebar-footer" style="margin-top:12px">✦ &nbsp; Lumos IA<br><small>Il tuo universo intelligente</small></div>
 </aside>
 
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
 <main class="main">
   <header class="topbar">
     <div class="top-left">
@@ -188,10 +235,17 @@ textarea::placeholder{color:#999dc4}
   <div class="typing" id="typing" hidden>✦ Lumos IA sta elaborando la risposta <span>...</span></div>
 
   <div class="input-area">
+    <div class="attachments-preview" id="attachmentsPreview"></div>
+
     <form class="input-box" id="form">
-      <textarea id="prompt" rows="1" placeholder="Scrivi il tuo messaggio..." aria-label="Messaggio" required></textarea>
-      <button class="send" id="send" type="submit">➤</button>
+      <input id="fileInput" type="file" multiple accept="image/*,.pdf,.txt,.docx,audio/*">
+      <button class="tool-btn" id="attachBtn" type="button" title="Allega file" aria-label="Allega file">＋</button>
+      <button class="tool-btn" id="dictationBtn" type="button" title="Dettatura vocale" aria-label="Dettatura vocale">🎙️</button>
+      <button class="tool-btn" id="recordBtn" type="button" title="Registra un audio" aria-label="Registra audio">🔴</button>
+      <textarea id="prompt" rows="1" placeholder="Scrivi un messaggio..." aria-label="Messaggio"></textarea>
+      <button class="send" id="send" type="submit" aria-label="Invia">➤</button>
     </form>
+    <div class="input-hint" id="inputHint">＋ Allega file · 🎙️ Dettatura · 🔴 Registra un audio</div>
   </div>
   <div class="disclaimer">Lumos IA può commettere errori: verifica le informazioni importanti.</div>
 </main>
@@ -211,38 +265,47 @@ const send=document.querySelector('#send');
 const typing=document.querySelector('#typing');
 const chatList=document.querySelector('#chatList');
 const sidebar=document.querySelector('#sidebar');
+const sidebarBackdrop=document.querySelector('#sidebarBackdrop');
 const loginBtn=document.querySelector('#loginBtn');
 const logoutBtn=document.querySelector('#logoutBtn');
 const accountEmail=document.querySelector('#accountEmail');
 const syncStatus=document.querySelector('#syncStatus');
+const fileInput=document.querySelector('#fileInput');
+const attachBtn=document.querySelector('#attachBtn');
+const dictationBtn=document.querySelector('#dictationBtn');
+const recordBtn=document.querySelector('#recordBtn');
+const attachmentsPreview=document.querySelector('#attachmentsPreview');
+const inputHint=document.querySelector('#inputHint');
 
 let history=[];
 let conversations=[];
 let activeId=null;
 let currentUser=null;
 let syncPromise=null;
+let pendingAttachments=[];
+let mediaRecorder=null;
+let recordedChunks=[];
+let recognition=null;
+let isRecording=false;
+let isDictating=false;
+
+const MAX_FILE_SIZE=2*1024*1024;
+const MAX_TOTAL_SIZE=2*1024*1024;
+const MAX_ATTACHMENTS=5;
 
 function storageKey(){
-  return currentUser ? 'lumos_chats_'+currentUser.id : 'lumos_chats';
+  return currentUser?'lumos_chats_'+currentUser.id:'lumos_chats';
 }
-
 function readLocalChats(key){
   try{
     const value=JSON.parse(localStorage.getItem(key)||'[]');
     return Array.isArray(value)?value:[];
-  }catch(e){
-    return [];
-  }
+  }catch(e){return[]}
 }
-
 function saveChats(){
   localStorage.setItem(storageKey(),JSON.stringify(conversations));
 }
-
-function setSyncStatus(text){
-  syncStatus.textContent=text;
-}
-
+function setSyncStatus(text){syncStatus.textContent=text}
 function updateAccountUI(){
   if(currentUser){
     accountEmail.textContent=currentUser.email||'Account Google collegato';
@@ -258,29 +321,22 @@ function updateAccountUI(){
 /* SINCRONIZZAZIONE CLOUD */
 async function uploadChat(chat){
   if(!currentUser)return;
-
-  const {error}=await supabaseClient
-    .from('lumos_chats')
-    .upsert({
-      id:chat.id,
-      user_id:currentUser.id,
-      title:chat.title,
-      messages:chat.messages,
-      updated_at:chat.updated_at||new Date().toISOString()
-    },{onConflict:'user_id,id'});
-
+  const {error}=await supabaseClient.from('lumos_chats').upsert({
+    id:chat.id,
+    user_id:currentUser.id,
+    title:chat.title,
+    messages:chat.messages,
+    updated_at:chat.updated_at||new Date().toISOString()
+  },{onConflict:'user_id,id'});
   if(error)throw error;
 }
-
 async function persistChat(chat){
   chat.updated_at=new Date().toISOString();
   saveChats();
-
   if(!currentUser){
     setSyncStatus('Chat salvata su questo dispositivo.');
     return;
   }
-
   try{
     await uploadChat(chat);
     setSyncStatus('✓ Chat salvata e sincronizzata online.');
@@ -289,64 +345,41 @@ async function persistChat(chat){
     setSyncStatus('Chat salvata localmente. Sincronizzazione non riuscita.');
   }
 }
-
 async function syncCloudChats(){
   if(!currentUser)return;
   if(syncPromise)return syncPromise;
 
   syncPromise=(async()=>{
     setSyncStatus('Sincronizzazione delle conversazioni...');
-
     try{
       const userKey='lumos_chats_'+currentUser.id;
       const hasUserChats=localStorage.getItem(userKey)!==null;
-
-      // Se è il primo accesso, recupera anche le vecchie chat locali.
-      const localChats=hasUserChats
-        ?readLocalChats(userKey)
-        :readLocalChats('lumos_chats');
+      const localChats=hasUserChats?readLocalChats(userKey):readLocalChats('lumos_chats');
 
       const {data:cloudChats,error}=await supabaseClient
-        .from('lumos_chats')
-        .select('id,title,messages,updated_at')
+        .from('lumos_chats').select('id,title,messages,updated_at')
         .order('updated_at',{ascending:false});
-
       if(error)throw error;
 
       const merged=new Map();
+      (cloudChats||[]).forEach(chat=>merged.set(chat.id,chat));
 
-      (cloudChats||[]).forEach(chat=>{
-        merged.set(chat.id,chat);
-      });
-
-      // Importa le chat locali mancanti o più recenti.
       for(const localChat of localChats){
         const remote=merged.get(localChat.id);
-        const localTime=localChat.updated_at
-          ?new Date(localChat.updated_at).getTime():0;
-        const remoteTime=remote?.updated_at
-          ?new Date(remote.updated_at).getTime():0;
-
+        const localTime=localChat.updated_at?new Date(localChat.updated_at).getTime():0;
+        const remoteTime=remote?.updated_at?new Date(remote.updated_at).getTime():0;
         if(!remote||localTime>remoteTime){
-          const toUpload={
-            ...localChat,
-            updated_at:localChat.updated_at||new Date().toISOString()
-          };
+          const toUpload={...localChat,updated_at:localChat.updated_at||new Date().toISOString()};
           await uploadChat(toUpload);
           merged.set(toUpload.id,toUpload);
         }
       }
 
-      conversations=Array.from(merged.values())
-        .sort((a,b)=>new Date(b.updated_at||0)-new Date(a.updated_at||0));
-
+      conversations=Array.from(merged.values()).sort(
+        (a,b)=>new Date(b.updated_at||0)-new Date(a.updated_at||0)
+      );
       localStorage.setItem(userKey,JSON.stringify(conversations));
-
-      // Le vecchie chat anonime vengono migrate al primo account usato.
-      if(!hasUserChats){
-        localStorage.removeItem('lumos_chats');
-      }
-
+      if(!hasUserChats)localStorage.removeItem('lumos_chats');
       renderList();
       setSyncStatus('✓ Conversazioni sincronizzate con il tuo account Google.');
     }catch(error){
@@ -355,26 +388,18 @@ async function syncCloudChats(){
     }
   })();
 
-  try{
-    await syncPromise;
-  }finally{
-    syncPromise=null;
-  }
+  try{await syncPromise}finally{syncPromise=null}
 }
 
 /* ACCESSO GOOGLE */
 loginBtn.onclick=async()=>{
   loginBtn.disabled=true;
   loginBtn.textContent='Apertura accesso...';
-
   try{
     const {error}=await supabaseClient.auth.signInWithOAuth({
       provider:'google',
-      options:{
-        redirectTo:window.location.origin
-      }
+      options:{redirectTo:window.location.origin}
     });
-
     if(error)throw error;
   }catch(error){
     alert('Errore durante l’accesso: '+error.message);
@@ -382,29 +407,19 @@ loginBtn.onclick=async()=>{
     loginBtn.textContent='Accedi con Google';
   }
 };
-
 logoutBtn.onclick=async()=>{
   logoutBtn.disabled=true;
-
   const {error}=await supabaseClient.auth.signOut();
-
   logoutBtn.disabled=false;
-
-  if(error){
-    alert('Errore durante la disconnessione: '+error.message);
-  }
+  if(error)alert('Errore durante la disconnessione: '+error.message);
 };
 
-/* GESTIONE SESSIONE */
 supabaseClient.auth.onAuthStateChange((event,session)=>{
   currentUser=session?.user||null;
   updateAccountUI();
-
-  if(currentUser){
-    if(event==='SIGNED_IN'||event==='INITIAL_SESSION'){
-      setTimeout(()=>syncCloudChats(),0);
-    }
-  }else if(event==='SIGNED_OUT'){
+  if(currentUser&&(event==='SIGNED_IN'||event==='INITIAL_SESSION')){
+    setTimeout(()=>syncCloudChats(),0);
+  }else if(!currentUser&&event==='SIGNED_OUT'){
     conversations=readLocalChats('lumos_chats');
     history=[];
     activeId=null;
@@ -416,24 +431,15 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{
 
 async function initializeAuth(){
   const {data,error}=await supabaseClient.auth.getSession();
-
-  if(error){
-    setSyncStatus('Impossibile verificare la sessione.');
-    return;
-  }
-
+  if(error){setSyncStatus('Impossibile verificare la sessione.');return}
   currentUser=data.session?.user||null;
   updateAccountUI();
-
-  if(currentUser){
-    await syncCloudChats();
-  }
+  if(currentUser)await syncCloudChats();
 }
 
 /* CRONOLOGIA */
 function renderList(){
   chatList.innerHTML='';
-
   conversations.slice().reverse().forEach(chat=>{
     const button=document.createElement('button');
     button.className='chat-item'+(chat.id===activeId?' active':'');
@@ -442,7 +448,6 @@ function renderList(){
     chatList.appendChild(button);
   });
 }
-
 function welcomeScreen(){
   messages.innerHTML=`
     <div class="welcome">
@@ -459,22 +464,20 @@ function welcomeScreen(){
       </div>
     </div>`;
 }
-
 function newChat(){
   if(send.disabled)return;
   activeId=null;
   history=[];
+  pendingAttachments=[];
+  renderAttachments();
   welcomeScreen();
   renderList();
   input.focus();
 }
-
 function loadChat(id){
   if(send.disabled)return;
-
   const chat=conversations.find(c=>c.id===id);
   if(!chat)return;
-
   activeId=id;
   history=chat.messages.map(m=>({...m}));
   messages.innerHTML='';
@@ -482,18 +485,15 @@ function loadChat(id){
   renderList();
 }
 
-/* SICUREZZA HTML */
+/* SICUREZZA E FORMATTAZIONE */
 function escapeHTML(text){
   return String(text).replace(/[&<>"']/g,char=>({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   })[char]);
 }
-
-/* FORMATTAZIONE MARKDOWN */
 function formatMessage(text){
   let safe=escapeHTML(text);
   const codeBlocks=[];
-
   safe=safe.replace(/```([a-zA-Z0-9_-]*)\n?([\s\S]*?)```/g,(match,language,code)=>{
     codeBlocks.push('<pre><code>'+code+'</code></pre>');
     return '%%CODE'+(codeBlocks.length-1)+'%%';
@@ -504,21 +504,15 @@ function formatMessage(text){
     value=value.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
     value=value.replace(/__(.*?)__/g,'<strong>$1</strong>');
     value=value.replace(/\*(.*?)\*/g,'<em>$1</em>');
-
     value=value.replace(/https?:\/\/[^\s<]+/g,url=>{
-      const cleanUrl=url.replace(/[.,!?;:)\]]+$/,'');
-      const ending=url.slice(cleanUrl.length);
-
+      const clean=url.replace(/[.,!?;:)\]]+$/,'');
+      const ending=url.slice(clean.length);
       try{
-        const parsed=new URL(cleanUrl);
+        const parsed=new URL(clean);
         if(!['http:','https:'].includes(parsed.protocol))return url;
-
-        return '<a href="'+cleanUrl+'" target="_blank" rel="noopener noreferrer">'+cleanUrl+'</a>'+ending;
-      }catch(e){
-        return url;
-      }
+        return '<a href="'+clean+'" target="_blank" rel="noopener noreferrer">'+clean+'</a>'+ending;
+      }catch(e){return url}
     });
-
     return value;
   }
 
@@ -528,52 +522,34 @@ function formatMessage(text){
     if(row.endsWith('|'))row=row.slice(0,-1);
     return row.split(/(?<!\\)\|/).map(cell=>cell.trim().replace(/\\\|/g,'|'));
   }
-
   function isTableSeparator(line){
-    const cells=splitTableRow(line);
-    return cells.length>0&&cells.every(cell=>/^:?-{3,}:?$/.test(cell));
+    return splitTableRow(line).every(cell=>/^:?-{3,}:?$/.test(cell));
   }
-
-  function getAlignment(separator){
-    if(separator.startsWith(':')&&separator.endsWith(':'))return 'center';
-    if(separator.endsWith(':'))return 'right';
-    return 'left';
+  function getAlignment(value){
+    if(value.startsWith(':')&&value.endsWith(':'))return'center';
+    if(value.endsWith(':'))return'right';
+    return'left';
   }
 
   const lines=safe.split('\n');
   let html='',listType=null,paragraph=[];
-
   function closeList(){
-    if(listType){
-      html+=listType==='ul'?'</ul>':'</ol>';
-      listType=null;
-    }
+    if(listType){html+=listType==='ul'?'</ul>':'</ol>';listType=null}
   }
-
   function closeParagraph(){
-    if(paragraph.length){
-      html+='<p>'+paragraph.join('<br>')+'</p>';
-      paragraph=[];
-    }
+    if(paragraph.length){html+='<p>'+paragraph.join('<br>')+'</p>';paragraph=[]}
   }
-
   function createTable(start){
     const headers=splitTableRow(lines[start]);
     const separators=splitTableRow(lines[start+1]);
-    let table='<div class="table-wrap" role="region" aria-label="Tabella" tabindex="0">';
-    table+='<table class="galaxy-table"><thead><tr>';
-
+    let table='<div class="table-wrap" role="region" aria-label="Tabella" tabindex="0"><table class="galaxy-table"><thead><tr>';
     headers.forEach((cell,index)=>{
       table+='<th style="text-align:'+getAlignment(separators[index]||'---')+'">'+inlineFormat(cell)+'</th>';
     });
-
     table+='</tr></thead><tbody>';
-
     let index=start+2;
     while(index<lines.length&&lines[index].includes('|')&&lines[index].trim()!==''){
       const cells=splitTableRow(lines[index]);
-      if(cells.length===1&&cells[0]==='')break;
-
       table+='<tr>';
       headers.forEach((header,column)=>{
         table+='<td style="text-align:'+getAlignment(separators[column]||'---')+'">'+inlineFormat(cells[column]??'')+'</td>';
@@ -581,102 +557,46 @@ function formatMessage(text){
       table+='</tr>';
       index++;
     }
-
     table+='</tbody></table></div>';
-    return {html:table,nextIndex:index};
+    return{html:table,nextIndex:index};
   }
 
   let i=0;
   while(i<lines.length){
     const line=lines[i],nextLine=lines[i+1]||'';
-
     if(line.includes('|')&&nextLine.includes('|')&&isTableSeparator(nextLine)){
       closeParagraph();closeList();
-      const result=createTable(i);
-      html+=result.html;
-      i=result.nextIndex;
-      continue;
+      const result=createTable(i);html+=result.html;i=result.nextIndex;continue;
     }
-
-    if(/^### (.+)$/.test(line)){
-      closeParagraph();closeList();
-      html+='<h3>'+inlineFormat(line.replace(/^### /,''))+'</h3>';
-      i++;continue;
-    }
-
-    if(/^## (.+)$/.test(line)){
-      closeParagraph();closeList();
-      html+='<h2>'+inlineFormat(line.replace(/^## /,''))+'</h2>';
-      i++;continue;
-    }
-
-    if(/^# (.+)$/.test(line)){
-      closeParagraph();closeList();
-      html+='<h1>'+inlineFormat(line.replace(/^# /,''))+'</h1>';
-      i++;continue;
-    }
-
-    if(/^\s*([-*_])\1{2,}\s*$/.test(line)){
-      closeParagraph();closeList();
-      html+='<hr>';
-      i++;continue;
-    }
+    if(/^### (.+)$/.test(line)){closeParagraph();closeList();html+='<h3>'+inlineFormat(line.replace(/^### /,''))+'</h3>';i++;continue}
+    if(/^## (.+)$/.test(line)){closeParagraph();closeList();html+='<h2>'+inlineFormat(line.replace(/^## /,''))+'</h2>';i++;continue}
+    if(/^# (.+)$/.test(line)){closeParagraph();closeList();html+='<h1>'+inlineFormat(line.replace(/^# /,''))+'</h1>';i++;continue}
+    if(/^\s*([-*_])\1{2,}\s*$/.test(line)){closeParagraph();closeList();html+='<hr>';i++;continue}
 
     const unordered=line.match(/^\s*[-*+]\s+(.+)$/);
     const ordered=line.match(/^\s*\d+[.)]\s+(.+)$/);
-
     if(unordered||ordered){
       closeParagraph();
       const type=unordered?'ul':'ol';
-
-      if(listType!==type){
-        closeList();
-        html+=type==='ul'?'<ul>':'<ol>';
-        listType=type;
-      }
-
+      if(listType!==type){closeList();html+=type==='ul'?'<ul>':'<ol>';listType=type}
       html+='<li>'+inlineFormat(unordered?unordered[1]:ordered[1])+'</li>';
       i++;continue;
     }
-
-    if(line.startsWith('&gt; ')){
-      closeParagraph();closeList();
-      html+='<blockquote>'+inlineFormat(line.replace(/^&gt; /,''))+'</blockquote>';
-      i++;continue;
-    }
-
-    if(/^%%CODE\d+%%$/.test(line.trim())){
-      closeParagraph();closeList();
-      html+=line.trim();
-      i++;continue;
-    }
-
-    if(line.trim()===''){
-      closeParagraph();closeList();
-      i++;continue;
-    }
-
-    closeList();
-    paragraph.push(inlineFormat(line));
-    i++;
+    if(line.startsWith('&gt; ')){closeParagraph();closeList();html+='<blockquote>'+inlineFormat(line.replace(/^&gt; /,''))+'</blockquote>';i++;continue}
+    if(/^%%CODE\d+%%$/.test(line.trim())){closeParagraph();closeList();html+=line.trim();i++;continue}
+    if(line.trim()===''){closeParagraph();closeList();i++;continue}
+    closeList();paragraph.push(inlineFormat(line));i++;
   }
-
-  closeList();
-  closeParagraph();
-
-  codeBlocks.forEach((block,index)=>{
-    html=html.replaceAll('%%CODE'+index+'%%',block);
-  });
-
+  closeList();closeParagraph();
+  codeBlocks.forEach((block,index)=>{html=html.replaceAll('%%CODE'+index+'%%',block)});
   return html;
 }
 
 /* CREA MESSAGGI */
-function bubble(text,role){
+function bubble(text,role,attachmentNames=[]){
   if(role==='assistant'){
     const row=document.createElement('div');
     row.className='assistant-row';
-
     const avatar=document.createElement('div');
     avatar.className='ai-avatar';
     avatar.textContent='✦';
@@ -684,18 +604,14 @@ function bubble(text,role){
 
     const message=document.createElement('div');
     message.className='assistant';
-
     const header=document.createElement('div');
     header.className='assistant-header';
-
     const name=document.createElement('strong');
     name.className='assistant-name';
     name.textContent='Lumos IA';
-
     const badge=document.createElement('span');
     badge.className='assistant-badge';
     badge.textContent='AI ASSISTANT';
-
     header.append(name,badge);
 
     const content=document.createElement('div');
@@ -704,22 +620,17 @@ function bubble(text,role){
 
     const actions=document.createElement('div');
     actions.className='message-actions';
-
     const copy=document.createElement('button');
     copy.className='copy-btn';
     copy.type='button';
     copy.textContent='▢ Copia risposta';
-
     copy.onclick=async()=>{
       try{
         await navigator.clipboard.writeText(text);
         copy.textContent='✓ Copiato!';
         setTimeout(()=>copy.textContent='▢ Copia risposta',1600);
-      }catch(e){
-        copy.textContent='Copia non disponibile';
-      }
+      }catch(e){copy.textContent='Copia non disponibile'}
     };
-
     actions.appendChild(copy);
     message.append(header,content,actions);
     row.append(avatar,message);
@@ -728,30 +639,263 @@ function bubble(text,role){
     const el=document.createElement('div');
     el.className='user';
     el.textContent=text;
+    if(attachmentNames.length){
+      const list=document.createElement('div');
+      list.className='user-attachments';
+      list.textContent='📎 '+attachmentNames.join(' · ');
+      el.appendChild(list);
+    }
     messages.appendChild(el);
   }
-
   messages.scrollTo({top:messages.scrollHeight,behavior:'smooth'});
 }
+
+/* ALLEGATI */
+function fileToDataURL(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=()=>reject(new Error('Impossibile leggere il file.'));
+    reader.readAsDataURL(file);
+  });
+}
+function textToDataURL(text){
+  const bytes=new TextEncoder().encode(text);
+  let binary='';
+  for(let i=0;i<bytes.length;i+=0x8000){
+    binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
+  }
+  return 'data:text/plain;base64,'+btoa(binary);
+}
+async function extractPDF(file){
+  if(!window.pdfjsLib)throw new Error('Lettore PDF non disponibile.');
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const buffer=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buffer}).promise;
+  let text='';
+  for(let pageNumber=1;pageNumber<=pdf.numPages;pageNumber++){
+    const page=await pdf.getPage(pageNumber);
+    const content=await page.getTextContent();
+    text+=content.items.map(item=>item.str).join(' ')+'\n';
+    if(text.length>50000)break;
+  }
+  if(!text.trim())throw new Error('Questo PDF non contiene testo leggibile. Potrebbe essere una scansione.');
+  return text.slice(0,50000);
+}
+async function extractDOCX(file){
+  if(!window.mammoth)throw new Error('Lettore DOCX non disponibile.');
+  const buffer=await file.arrayBuffer();
+  const result=await mammoth.extractRawText({arrayBuffer:buffer});
+  if(!result.value.trim())throw new Error('Non ho trovato testo nel documento.');
+  return result.value.slice(0,50000);
+}
+function renderAttachments(){
+  attachmentsPreview.innerHTML='';
+  pendingAttachments.forEach((attachment,index)=>{
+    const chip=document.createElement('div');
+    chip.className='attachment-chip';
+    const label=document.createElement('span');
+    label.textContent=(attachment.kind==='audio'?'🎵 ':attachment.kind==='image'?'🖼️ ':'📄 ')+attachment.name;
+    const remove=document.createElement('button');
+    remove.type='button';
+    remove.className='remove-attachment';
+    remove.textContent='×';
+    remove.title='Rimuovi allegato';
+    remove.onclick=()=>{
+      pendingAttachments.splice(index,1);
+      renderAttachments();
+    };
+    chip.append(label,remove);
+    attachmentsPreview.appendChild(chip);
+  });
+  inputHint.textContent=pendingAttachments.length
+    ?pendingAttachments.length+' allegato/i pronti per l’invio'
+    :'＋ Allega file · 🎙️ Dettatura · 🔴 Registra un audio';
+}
+async function addFiles(files){
+  for(const file of Array.from(files)){
+    try{
+      if(pendingAttachments.length>=MAX_ATTACHMENTS){
+        alert('Puoi aggiungere massimo 5 allegati per messaggio.');
+        break;
+      }
+      if(file.size>MAX_FILE_SIZE){
+        alert(file.name+' è troppo grande. Il limite è 2 MB per file.');
+        continue;
+      }
+      const currentTotal=pendingAttachments.reduce((sum,item)=>sum+item.size,0);
+      if(currentTotal+file.size>MAX_TOTAL_SIZE){
+        alert('La dimensione totale degli allegati non può superare 2 MB.');
+        break;
+      }
+
+      const type=file.type.toLowerCase();
+      let attachment;
+
+      if(type.startsWith('image/')){
+        const data=await fileToDataURL(file);
+        attachment={name:file.name,data,size:file.size,kind:'image'};
+      }else if(type.startsWith('audio/')){
+        const data=await fileToDataURL(file);
+        attachment={name:file.name,data,size:file.size,kind:'audio'};
+      }else if(type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf')){
+        inputHint.textContent='Lettura del PDF: '+file.name+'...';
+        const text=await extractPDF(file);
+        attachment={name:file.name,data:textToDataURL(text),size:file.size,kind:'document'};
+      }else if(type==='text/plain'||file.name.toLowerCase().endsWith('.txt')){
+        const text=await file.text();
+        attachment={name:file.name,data:textToDataURL(text.slice(0,50000)),size:file.size,kind:'document'};
+      }else if(file.name.toLowerCase().endsWith('.docx')){
+        inputHint.textContent='Lettura del documento: '+file.name+'...';
+        const text=await extractDOCX(file);
+        attachment={name:file.name,data:textToDataURL(text),size:file.size,kind:'document'};
+      }else{
+        alert('Formato non supportato: '+file.name+'. Puoi usare immagini, PDF, TXT, DOCX e audio.');
+        continue;
+      }
+
+      pendingAttachments.push(attachment);
+      renderAttachments();
+    }catch(error){
+      console.error(error);
+      alert('Problema con '+file.name+': '+error.message);
+    }
+  }
+  fileInput.value='';
+  renderAttachments();
+}
+attachBtn.onclick=()=>fileInput.click();
+fileInput.addEventListener('change',()=>addFiles(fileInput.files));
+
+/* DETTATURA VOCALE */
+function startDictation(){
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SpeechRecognition){
+    alert('La dettatura vocale non è supportata da questo browser. Prova con Google Chrome.');
+    return;
+  }
+  if(isDictating){
+    recognition.stop();
+    return;
+  }
+
+  recognition=new SpeechRecognition();
+  recognition.lang='it-IT';
+  recognition.continuous=true;
+  recognition.interimResults=true;
+  isDictating=true;
+  dictationBtn.classList.add('listening');
+  dictationBtn.textContent='⏹️';
+  let finalText='';
+
+  recognition.onresult=(event)=>{
+    let interim='';
+    for(let i=event.resultIndex;i<event.results.length;i++){
+      const transcript=event.results[i][0].transcript;
+      if(event.results[i].isFinal)finalText+=transcript+' ';
+      else interim+=transcript;
+    }
+    input.value=(input.dataset.beforeDictation||'')+finalText+interim;
+    input.style.height='auto';
+    input.style.height=Math.min(input.scrollHeight,115)+'px';
+  };
+  input.dataset.beforeDictation=input.value?input.value+' ':'';
+  recognition.onerror=(event)=>{
+    if(event.error!=='no-speech')console.error('Errore dettatura:',event.error);
+  };
+  recognition.onend=()=>{
+    isDictating=false;
+    dictationBtn.classList.remove('listening');
+    dictationBtn.textContent='🎙️';
+    delete input.dataset.beforeDictation;
+  };
+  recognition.start();
+}
+dictationBtn.onclick=startDictation;
+
+/* REGISTRAZIONE AUDIO */
+async function startRecording(){
+  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){
+    alert('La registrazione audio non è supportata da questo browser.');
+    return;
+  }
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    let mimeType='';
+    if(MediaRecorder.isTypeSupported('audio/webm;codecs=opus'))mimeType='audio/webm;codecs=opus';
+    else if(MediaRecorder.isTypeSupported('audio/webm'))mimeType='audio/webm';
+    else if(MediaRecorder.isTypeSupported('audio/mp4'))mimeType='audio/mp4';
+
+    mediaRecorder=new MediaRecorder(stream,mimeType?{mimeType}:undefined);
+    recordedChunks=[];
+    mediaRecorder.ondataavailable=event=>{
+      if(event.data.size>0)recordedChunks.push(event.data);
+    };
+    mediaRecorder.onstop=async()=>{
+      const actualType=mediaRecorder.mimeType||'audio/webm';
+      const normalizedType=actualType.startsWith('audio/mp4')?'audio/mp4':'audio/webm';
+      const blob=new Blob(recordedChunks,{type:normalizedType});
+      stream.getTracks().forEach(track=>track.stop());
+
+      if(blob.size>MAX_FILE_SIZE){
+        alert('La registrazione supera 2 MB. Prova a registrare un audio più breve.');
+        resetRecordButton();
+        return;
+      }
+
+      const extension=normalizedType==='audio/mp4'?'m4a':'webm';
+      const file=new File([blob],'messaggio-vocale.'+extension,{type:normalizedType});
+      await addFiles([file]);
+      resetRecordButton();
+    };
+    mediaRecorder.start();
+    isRecording=true;
+    recordBtn.classList.add('recording');
+    recordBtn.textContent='⏹️';
+    inputHint.textContent='Registrazione in corso. Premi ⏹️ per terminare.';
+  }catch(error){
+    console.error(error);
+    alert('Non posso accedere al microfono. Controlla i permessi del browser.');
+    resetRecordButton();
+  }
+}
+function stopRecording(){
+  if(mediaRecorder&&mediaRecorder.state!=='inactive'){
+    mediaRecorder.stop();
+  }
+  isRecording=false;
+}
+function resetRecordButton(){
+  isRecording=false;
+  recordBtn.classList.remove('recording');
+  recordBtn.textContent='🔴';
+  renderAttachments();
+}
+recordBtn.onclick=()=>{
+  if(isRecording)stopRecording();
+  else startRecording();
+};
 
 /* INVIO MESSAGGI */
 async function submit(text){
   text=text.trim();
-  if(!text||send.disabled)return;
+  if((!text&&!pendingAttachments.length)||send.disabled)return;
 
   if(!activeId)activeId=Date.now().toString();
 
-  const wasEmpty=history.length===0;
+  const outgoingAttachments=pendingAttachments.slice();
+  const attachmentNames=outgoingAttachments.map(item=>item.name);
+  const historyText=text+(attachmentNames.length?'\n[Allegati: '+attachmentNames.join(', ')+']':'');
 
-  bubble(text,'user');
-  history.push({role:'user',content:text});
+  const wasEmpty=history.length===0;
+  bubble(text||'Ho inviato un allegato.', 'user',attachmentNames);
+  history.push({role:'user',content:historyText});
 
   let chat;
-
   if(wasEmpty){
     chat={
       id:activeId,
-      title:text.slice(0,35),
+      title:(text||attachmentNames[0]||'Nuova conversazione').slice(0,35),
       messages:history,
       updated_at:new Date().toISOString()
     };
@@ -761,25 +905,36 @@ async function submit(text){
     if(chat)chat.messages=history;
   }
 
+  pendingAttachments=[];
+  renderAttachments();
   input.value='';
   input.style.height='auto';
   send.disabled=true;
+  attachBtn.disabled=true;
+  dictationBtn.disabled=true;
+  recordBtn.disabled=true;
   typing.hidden=false;
 
-  // Salva subito il messaggio, anche prima della risposta.
   if(chat)await persistChat(chat);
 
   try{
     const response=await fetch('/api/chat',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:history.slice(-12)})
+      body:JSON.stringify({
+        messages:history.slice(-12),
+        attachments:outgoingAttachments.map(item=>({
+          name:item.name,
+          data:item.data
+        }))
+      })
     });
 
     const data=await response.json();
+    if(!response.ok)throw new Error(data.error||'Errore del server');
 
-    if(!response.ok){
-      throw new Error(data.error||'Errore del server');
+    if(data.transcript){
+      inputHint.textContent='Audio trascritto correttamente.';
     }
 
     const answer=data.reply||'Non ho ricevuto una risposta.';
@@ -791,13 +946,10 @@ async function submit(text){
       chat.messages=history;
       await persistChat(chat);
     }
-
     renderList();
-
   }catch(err){
     bubble('Mi dispiace, c’è stato un problema: '+err.message,'assistant');
     history.pop();
-
     chat=conversations.find(c=>c.id===activeId);
     if(chat){
       chat.messages=history;
@@ -806,40 +958,68 @@ async function submit(text){
   }finally{
     typing.hidden=true;
     send.disabled=false;
+    attachBtn.disabled=false;
+    dictationBtn.disabled=false;
+    recordBtn.disabled=false;
     input.focus();
   }
 }
 
 /* EVENTI */
-document.querySelector('#newChat').onclick=newChat;
-
-document.querySelector('#menu').onclick=()=>{
-  sidebar.classList.toggle('collapsed');
+document.querySelector('#newChat').onclick=()=>{
+  if(window.innerWidth<=850)closeMobileMenu();
+  newChat();
 };
-
-form.addEventListener('submit',e=>{
-  e.preventDefault();
-  submit(input.value);
+function openMobileMenu(){
+  sidebar.classList.remove('collapsed');
+  document.body.classList.add('menu-open');
+}
+function closeMobileMenu(){
+  sidebar.classList.add('collapsed');
+  document.body.classList.remove('menu-open');
+}
+document.querySelector('#menu').onclick=()=>{
+  if(window.innerWidth<=850){
+    if(document.body.classList.contains('menu-open'))closeMobileMenu();
+    else openMobileMenu();
+  }else{
+    sidebar.classList.toggle('collapsed');
+  }
+};
+sidebarBackdrop.onclick=closeMobileMenu;
+window.addEventListener('resize',()=>{
+  if(window.innerWidth>850){
+    document.body.classList.remove('menu-open');
+    sidebar.classList.remove('collapsed');
+  }else{
+    sidebar.classList.add('collapsed');
+  }
+});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape')closeMobileMenu();
 });
 
+form.addEventListener('submit',event=>{
+  event.preventDefault();
+  submit(input.value);
+});
 input.addEventListener('input',()=>{
   input.style.height='auto';
   input.style.height=Math.min(input.scrollHeight,140)+'px';
 });
-
-input.addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&!e.shiftKey){
-    e.preventDefault();
+input.addEventListener('keydown',event=>{
+  if(event.key==='Enter'&&!event.shiftKey){
+    event.preventDefault();
     form.requestSubmit();
   }
 });
-
-messages.addEventListener('click',e=>{
-  const chip=e.target.closest('.chip');
+messages.addEventListener('click',event=>{
+  const chip=event.target.closest('.chip');
   if(chip)submit(chip.textContent.trim());
 });
 
 /* AVVIO */
+if(window.innerWidth<=850)sidebar.classList.add('collapsed');
 conversations=readLocalChats('lumos_chats');
 renderList();
 welcomeScreen();
