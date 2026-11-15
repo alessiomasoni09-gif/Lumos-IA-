@@ -76,7 +76,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .user-attachments{margin-top:9px;padding-top:8px;border-top:1px solid #ffffff33;font-size:12px;color:#eeeaff}
 @keyframes userIn{from{opacity:0;transform:translateX(15px) scale(.97)}to{opacity:1;transform:translateX(0) scale(1)}}
 
-/* MESSAGGI LUMOS */
+/* RISPOSTE LUMOS */
 .assistant-row{display:flex;align-items:flex-start;gap:12px;width:min(850px,95%);animation:lumosIn .55s cubic-bezier(.16,1,.3,1) both}
 @keyframes lumosIn{from{opacity:0;transform:translateY(20px) scale(.985);filter:blur(5px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
 .ai-avatar{width:38px;height:38px;flex-shrink:0;display:grid;place-items:center;border-radius:13px;font-size:23px;color:white;background:linear-gradient(135deg,#a45aff,#276dff);border:1px solid #c3a0ff;box-shadow:0 0 18px #8855ff88}
@@ -107,7 +107,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .galaxy-table tbody tr:nth-child(odd){background:#171b3d}.galaxy-table tbody tr:nth-child(even){background:#101630}
 .galaxy-table tbody tr:last-child td{border-bottom:0}
 
-/* AZIONI */
+/* AZIONI RISPOSTA */
 .message-actions{display:flex;gap:7px;margin-top:12px;padding-top:9px;border-top:1px solid #ffffff10}
 .copy-btn{border:1px solid #7968bd55;border-radius:8px;padding:6px 10px;color:#bcb5e9;background:#17183a;font-size:11px}
 .copy-btn:hover{background:#30205c;color:white}
@@ -115,24 +115,87 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .typing span{animation:blink 1.2s infinite}
 @keyframes blink{50%{opacity:.25}}
 
-/* AREA INPUT */
+/* BARRA MESSAGGI - STILE CHATGPT */
 .input-area{z-index:2;padding:12px 24px 7px}
-.input-box{width:min(850px,100%);margin:auto;display:flex;align-items:flex-end;gap:9px;padding:10px 12px;border-radius:23px;border:1px solid #9272ff;background:linear-gradient(120deg,#15183bee,#101b3bee);box-shadow:0 0 25px #7552ff33,0 0 55px #276aff1a;backdrop-filter:blur(20px)}
-.input-box:focus-within{border-color:#bca0ff;box-shadow:0 0 0 3px #9874ff22,0 0 35px #8154ff55}
-textarea{flex:1;min-width:0;resize:none;min-height:43px;max-height:140px;background:transparent;border:0;outline:0;color:white;padding:11px 8px;font-size:14px}
-textarea::placeholder{color:#999dc4}
-.send{width:47px;height:47px;flex-shrink:0;border:1px solid #c0a2ff;border-radius:15px;color:white;font-size:22px;background:linear-gradient(135deg,#a14cff,#356fff);box-shadow:0 0 22px #8050ff88}
-.send:disabled{opacity:.5;cursor:not-allowed}
+.input-box{
+  width:min(850px,100%);
+  margin:auto;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:9px 12px;
+  border-radius:28px;
+  border:1px solid #ffffff30;
+  background:#202123;
+  box-shadow:0 4px 20px #0005;
+  backdrop-filter:blur(20px);
+  transition:border-color .2s,box-shadow .2s;
+}
+.input-box:focus-within{
+  border-color:#ffffff60;
+  box-shadow:0 0 0 2px #ffffff0d,0 4px 25px #0005;
+}
+textarea{
+  flex:1;
+  min-width:0;
+  resize:none;
+  min-height:42px;
+  max-height:140px;
+  background:transparent;
+  border:0;
+  outline:0;
+  color:white;
+  padding:11px 5px;
+  font-size:14px;
+}
+textarea::placeholder{color:#a1a1aa}
 
-/* NUOVI PULSANTI */
-.tool-btn{width:43px;height:43px;flex-shrink:0;border:1px solid #7969bd88;border-radius:14px;background:#191b42;color:#d9caff;font-size:19px;display:grid;place-items:center;transition:.2s}
-.tool-btn:hover{border-color:#b89aff;background:#30205c;box-shadow:0 0 15px #8050ff55}
-.tool-btn.recording{background:#721e54;border-color:#ff70ad;color:white;animation:recordPulse 1s infinite}
+/* PULSANTE INVIO A DESTRA */
+.send{
+  width:40px;
+  height:40px;
+  flex-shrink:0;
+  border:0;
+  border-radius:50%;
+  color:#111111;
+  font-size:25px;
+  font-weight:700;
+  background:#ffffff;
+  box-shadow:none;
+  display:grid;
+  place-items:center;
+  transition:background .2s,transform .2s;
+}
+.send:hover{background:#dddddd;transform:scale(1.05)}
+.send:disabled{opacity:.45;cursor:not-allowed}
+
+/* PULSANTI STRUMENTI */
+.tool-btn{
+  width:40px;
+  height:40px;
+  flex-shrink:0;
+  border:0;
+  border-radius:50%;
+  background:transparent;
+  color:#eeeeee;
+  font-size:21px;
+  display:grid;
+  place-items:center;
+  transition:background .2s,color .2s;
+}
+.tool-btn:hover{background:#ffffff18;color:white}
+.tool-btn.recording{
+  background:#8b1e3f;
+  color:white;
+  animation:recordPulse 1s infinite;
+}
+.tool-btn.listening{background:#253e82;color:white}
 @keyframes recordPulse{50%{box-shadow:0 0 0 6px #ff4b8b22}}
-.tool-btn.listening{background:#253e82;border-color:#7cbaff;color:white}
 #fileInput{display:none}
+
+/* ALLEGATI */
 .attachments-preview{width:min(850px,100%);margin:0 auto 8px;display:flex;flex-wrap:wrap;gap:7px}
-.attachment-chip{display:flex;align-items:center;gap:8px;max-width:100%;padding:7px 10px;border:1px solid #7968bd88;border-radius:11px;background:#17183a;color:#e4d9ff;font-size:11px}
+.attachment-chip{display:flex;align-items:center;gap:8px;max-width:100%;padding:7px 10px;border:1px solid #ffffff30;border-radius:12px;background:#202123;color:#e4d9ff;font-size:11px}
 .attachment-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px}
 .remove-attachment{border:0;background:transparent;color:#ff9ab9;font-size:17px;padding:0 2px}
 .input-hint{width:min(850px,100%);margin:6px auto 0;color:#9995c3;font-size:10px}
@@ -168,10 +231,10 @@ textarea::placeholder{color:#999dc4}
  .assistant-content pre{max-width:100%;font-size:12px}
  .table-wrap{-webkit-overflow-scrolling:touch}
  .input-area{padding:8px 10px 3px;padding-bottom:max(5px,env(safe-area-inset-bottom))}
- .input-box{gap:6px;padding:7px;border-radius:19px}
- textarea{min-height:43px;max-height:115px;padding:11px 5px;font-size:16px}
- .send{width:43px;height:43px;border-radius:13px;font-size:20px}
- .tool-btn{width:40px;height:40px;border-radius:12px;font-size:17px}
+ .input-box{gap:5px;padding:7px 9px;border-radius:25px}
+ textarea{min-height:42px;max-height:115px;padding:11px 5px;font-size:16px}
+ .send{width:38px;height:38px;font-size:23px}
+ .tool-btn{width:36px;height:40px;font-size:19px}
  .disclaimer{padding:5px 8px 8px;font-size:9px}
  .typing{padding:0 15px 8px;font-size:11px}
  .input-hint{padding-left:4px}
@@ -182,9 +245,9 @@ textarea::placeholder{color:#999dc4}
  .chips{grid-template-columns:1fr}
  .chip{min-height:62px}
  .chip span{display:inline;margin-right:7px}
- .input-box{gap:4px;padding:6px}
- .tool-btn{width:36px;height:38px}
- .send{width:40px;height:40px}
+ .input-box{gap:3px;padding:6px}
+ .tool-btn{width:32px;height:38px;font-size:18px}
+ .send{width:36px;height:36px}
 }
 @media(max-width:850px) and (orientation:landscape){
  .welcome-icon{width:60px;height:60px;font-size:38px;margin-bottom:10px}
@@ -239,13 +302,19 @@ textarea::placeholder{color:#999dc4}
 
     <form class="input-box" id="form">
       <input id="fileInput" type="file" multiple accept="image/*,.pdf,.txt,.docx,audio/*">
+
+      <!-- ALLEGATI A SINISTRA -->
       <button class="tool-btn" id="attachBtn" type="button" title="Allega file" aria-label="Allega file">＋</button>
-      <button class="tool-btn" id="dictationBtn" type="button" title="Dettatura vocale" aria-label="Dettatura vocale">🎙️</button>
-      <button class="tool-btn" id="recordBtn" type="button" title="Registra un audio" aria-label="Registra audio">🔴</button>
+
+      <!-- TESTO AL CENTRO -->
       <textarea id="prompt" rows="1" placeholder="Scrivi un messaggio..." aria-label="Messaggio"></textarea>
-      <button class="send" id="send" type="submit" aria-label="Invia">➤</button>
+
+      <!-- COMANDI A DESTRA -->
+      <button class="tool-btn" id="dictationBtn" type="button" title="Dettatura vocale" aria-label="Dettatura vocale">🎙️</button>
+      <button class="tool-btn" id="recordBtn" type="button" title="Registra un audio" aria-label="Registra audio">🎧</button>
+      <button class="send" id="send" type="submit" aria-label="Invia">↑</button>
     </form>
-    <div class="input-hint" id="inputHint">＋ Allega file · 🎙️ Dettatura · 🔴 Registra un audio</div>
+    <div class="input-hint" id="inputHint">＋ Allega file · 🎙️ Dettatura · 🎧 Registra un audio</div>
   </div>
   <div class="disclaimer">Lumos IA può commettere errori: verifica le informazioni importanti.</div>
 </main>
@@ -710,7 +779,7 @@ function renderAttachments(){
   });
   inputHint.textContent=pendingAttachments.length
     ?pendingAttachments.length+' allegato/i pronti per l’invio'
-    :'＋ Allega file · 🎙️ Dettatura · 🔴 Registra un audio';
+    :'＋ Allega file · 🎙️ Dettatura · 🎧 Registra un audio';
 }
 async function addFiles(files){
   for(const file of Array.from(files)){
@@ -868,7 +937,7 @@ function stopRecording(){
 function resetRecordButton(){
   isRecording=false;
   recordBtn.classList.remove('recording');
-  recordBtn.textContent='🔴';
+  recordBtn.textContent='🎧';
   renderAttachments();
 }
 recordBtn.onclick=()=>{
