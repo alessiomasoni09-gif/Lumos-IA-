@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -6,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#050619">
 <title>Lumos IA — Galaxy Experience</title>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
@@ -15,20 +13,15 @@
 :root{--bg:#050619;--purple:#9b5cff;--blue:#258cff;--text:#f5f3ff;--muted:#a4a9d0}
 *{box-sizing:border-box}
 body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,system-ui,sans-serif}
-button,textarea{font:inherit}
-button{cursor:pointer}
-button:disabled{opacity:.5;cursor:not-allowed}
+button,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}
 .app{height:100vh;height:100dvh;display:flex;position:relative}
 .main{min-width:0;flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 105%,#123c9b77,transparent 48%),radial-gradient(ellipse at 12% 35%,#6018a955,transparent 38%),radial-gradient(ellipse at 85% 30%,#102c9d66,transparent 40%),linear-gradient(145deg,#050619,#080b2c 55%,#030718)}
 .main:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.6;background-image:radial-gradient(2px 2px at 10% 20%,#fff,transparent),radial-gradient(1px 1px at 25% 65%,#b9a3ff,transparent),radial-gradient(2px 2px at 40% 12%,#fff,transparent),radial-gradient(1px 1px at 55% 40%,#fff,transparent),radial-gradient(2px 2px at 72% 15%,#b9caff,transparent),radial-gradient(1px 1px at 90% 65%,#fff,transparent);background-size:260px 230px}
-
-/* SIDEBAR */
 .sidebar{width:290px;flex-shrink:0;z-index:20;display:flex;flex-direction:column;padding:24px 18px;background:linear-gradient(180deg,#070b22f5,#09091ff5);border-right:1px solid #7464ff66;box-shadow:8px 0 50px #0007;transition:width .3s,padding .3s,transform .3s;overflow:hidden}
 .sidebar.collapsed{width:0;padding:0;border:0}
 .brand{display:flex;align-items:center;gap:13px;margin-bottom:35px;white-space:nowrap}
 .logo{width:52px;height:52px;display:grid;place-items:center;font-size:35px;flex-shrink:0;border-radius:17px;background:radial-gradient(circle,#a9baff,#6635ff 55%,#180d56);border:1px solid #a98cff;box-shadow:0 0 25px #784bff,0 0 55px #385dff55}
-.brand h1{margin:0;font-size:23px}.brand h1 span{color:#a978ff}
-.brand p{margin:4px 0 0;color:#aaa6d8;font-size:10px}
+.brand h1{margin:0;font-size:23px}.brand h1 span{color:#a978ff}.brand p{margin:4px 0 0;color:#aaa6d8;font-size:10px}
 .new-chat{padding:15px 13px;border:1px solid #a56cff;border-radius:13px;color:white;text-align:left;background:linear-gradient(110deg,#7028e9,#253ed0);box-shadow:0 0 25px #713cff55;white-space:nowrap}
 .new-chat:hover{transform:translateY(-2px)}
 .side-label{margin:25px 8px 13px;color:#8e91c2;font-size:11px;letter-spacing:1.5px;text-transform:uppercase}
@@ -36,16 +29,20 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .chat-item{width:100%;padding:13px 11px;margin-bottom:5px;border:1px solid transparent;border-radius:11px;background:transparent;color:#c6c8e9;text-align:left;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chat-item:hover,.chat-item.active{background:linear-gradient(100deg,#6531b755,#173d8955);border-color:#8464ff77;color:white}
 .sidebar-footer{border:1px solid #6350bd55;border-radius:15px;padding:15px 12px;color:#c6baff;background:linear-gradient(120deg,#25165b88,#101d4c88);font-size:12px}
-
-/* ACCOUNT */
 .account-box{margin-top:16px;padding:13px;border:1px solid #7964bd77;border-radius:14px;background:linear-gradient(130deg,#21164b99,#101b3b99);font-size:12px}
 .account-title{font-weight:700;color:#d9c5ff;margin-bottom:7px}
 #accountEmail{color:#b8b5df;overflow-wrap:anywhere;margin-bottom:10px}
 .auth-btn{width:100%;padding:10px;border-radius:9px;border:1px solid #a98aff;background:linear-gradient(110deg,#7139d7,#2859c5);color:white;font-size:12px}
 .auth-btn.secondary{margin-top:7px;background:#171b3d;border-color:#6e65a9}
 #syncStatus{font-size:10px;color:#a9a5d1;margin-top:9px;line-height:1.5}
-
-/* TOPBAR */
+.plan-box{margin-top:12px;padding:12px;border-radius:12px;border:1px solid #8d70dc77;background:#090e2dcc}
+.plan-heading{display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:8px;color:#d9c5ff;font-weight:750}
+.plan-pill{padding:4px 8px;border-radius:20px;background:#3d286e;color:#d9c5ff;font-size:10px;letter-spacing:.5px}
+.plan-description{color:#b8b5df;font-size:10px;line-height:1.6;margin-bottom:9px}
+.plan-btn{width:100%;padding:9px;margin-top:6px;border-radius:9px;border:1px solid #9975ff;background:linear-gradient(110deg,#7139d7,#2859c5);color:white;font-size:11px;font-weight:700}
+.plan-btn.premium{background:linear-gradient(110deg,#a34be8,#245fd4);border-color:#c19aff}
+.plan-btn:disabled{opacity:.6}
+.owner-label{display:block;margin-top:7px;padding:7px;border-radius:8px;background:#34235e;color:#e0caff;text-align:center;font-size:10px;font-weight:800;letter-spacing:.7px}
 .topbar{height:68px;flex-shrink:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #ffffff12;background:#080b23aa;backdrop-filter:blur(18px)}
 .top-left{display:flex;align-items:center;gap:14px;min-width:0}
 .menu{width:41px;height:41px;flex-shrink:0;border-radius:12px;border:1px solid #6e65b966;background:#14183b;color:white;font-size:19px}
@@ -53,30 +50,21 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .status{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:30px;border:1px solid #36b78a55;background:#103c3444;color:#8fffd0;font-size:11px;flex-shrink:0}
 .dot{width:8px;height:8px;border-radius:50%;background:#3cffad;box-shadow:0 0 12px #3cffad;animation:pulse 1.8s infinite}
 @keyframes pulse{50%{opacity:.4}}
-
-/* MESSAGGI */
 #messages{flex:1;min-height:0;overflow-y:auto;position:relative;z-index:1;padding:30px 24px;display:flex;flex-direction:column;gap:23px;scroll-behavior:smooth}
-#messages::-webkit-scrollbar{width:7px}
-#messages::-webkit-scrollbar-thumb{background:linear-gradient(#8c5aff,#287cff);border-radius:20px}
+#messages::-webkit-scrollbar{width:7px}#messages::-webkit-scrollbar-thumb{background:linear-gradient(#8c5aff,#287cff);border-radius:20px}
 .welcome{margin:auto;width:min(850px,100%);text-align:center;padding:20px;animation:appear .8s ease}
 @keyframes appear{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 .welcome-icon{width:105px;height:105px;margin:0 auto 20px;display:grid;place-items:center;border-radius:50%;font-size:65px;color:white;background:radial-gradient(circle at 35% 25%,#e3dcff,#8552ff 35%,#152a9d 75%);border:1px solid #b9a0ff;box-shadow:0 0 25px #9055ff,0 0 65px #473cff77;animation:float 4s ease-in-out infinite}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
-.welcome h2{font-size:43px;letter-spacing:-1.7px;margin:0 0 10px}
-.welcome h2 span{background:linear-gradient(90deg,#c69aff,#6dbbff);color:transparent;background-clip:text}
+.welcome h2{font-size:43px;letter-spacing:-1.7px;margin:0 0 10px}.welcome h2 span{background:linear-gradient(90deg,#c69aff,#6dbbff);color:transparent;background-clip:text}
 .welcome-subtitle{font-size:17px!important;color:#e2dcff!important}
 .welcome p{color:#b4b8dc;font-size:13px;line-height:1.8}
 .chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;text-align:left;margin-top:27px}
 .chip{min-height:85px;padding:16px;border:1px solid #7065d888;border-radius:17px;background:linear-gradient(145deg,#171b46dd,#090e2cdd);color:#e6e3ff;text-align:left;font-size:13px;transition:.25s}
-.chip span{display:block;font-size:23px;margin-bottom:8px}
-.chip:hover{transform:translateY(-4px);border-color:#a47aff;box-shadow:0 0 25px #7952ff66}
-
-/* MESSAGGI UTENTE */
+.chip span{display:block;font-size:23px;margin-bottom:8px}.chip:hover{transform:translateY(-4px);border-color:#a47aff;box-shadow:0 0 25px #7952ff66}
 .user{align-self:flex-end;max-width:min(75%,760px);padding:14px 19px;border-radius:19px 19px 5px 19px;background:linear-gradient(125deg,#783ce0,#236fd1);border:1px solid #b59aff66;box-shadow:0 5px 25px #563aff44;color:white;font-size:14px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;animation:userIn .35s ease-out both}
 .user-attachments{margin-top:9px;padding-top:8px;border-top:1px solid #ffffff33;font-size:12px;color:#eeeaff}
 @keyframes userIn{from{opacity:0;transform:translateX(15px) scale(.97)}to{opacity:1;transform:translateX(0) scale(1)}}
-
-/* RISPOSTE LUMOS */
 .assistant-row{display:flex;align-items:flex-start;gap:12px;width:min(850px,95%);animation:lumosIn .55s cubic-bezier(.16,1,.3,1) both}
 @keyframes lumosIn{from{opacity:0;transform:translateY(20px) scale(.985);filter:blur(5px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
 .ai-avatar{width:38px;height:38px;flex-shrink:0;display:grid;place-items:center;border-radius:13px;font-size:23px;color:white;background:linear-gradient(135deg,#a45aff,#276dff);border:1px solid #c3a0ff;box-shadow:0 0 18px #8855ff88}
@@ -91,109 +79,34 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .assistant-content h1{font-size:22px}.assistant-content h2{font-size:19px}.assistant-content h3{font-size:16px}
 .assistant-content strong{color:#d9c4ff;font-weight:750}.assistant-content em{color:#d5c8ff}
 .assistant-content a{color:#83baff;text-decoration:none;border-bottom:1px solid #568dff88;overflow-wrap:anywhere}
-.assistant-content ul,.assistant-content ol{padding-left:24px;margin:9px 0 15px}
-.assistant-content li{padding:5px 0}.assistant-content li::marker{color:#a77aff}
+.assistant-content ul,.assistant-content ol{padding-left:24px;margin:9px 0 15px}.assistant-content li{padding:5px 0}.assistant-content li::marker{color:#a77aff}
 .assistant-content code{background:#29224c;color:#d3baff;border:1px solid #8a68cc55;border-radius:5px;padding:2px 5px;font-size:12px}
 .assistant-content pre{padding:15px;border-radius:11px;overflow-x:auto;background:#080b20;border:1px solid #6652a866}
 .assistant-content pre code{padding:0;border:0;background:none;color:#d9d4ff}
 .assistant-content blockquote{border-left:3px solid #9870ff;margin:12px 0;padding:7px 13px;color:#c5c2e7;background:#ffffff08}
 .assistant-content hr{border:0;border-top:1px solid #7765ce77;margin:18px 0}
-
-/* TABELLE */
 .table-wrap{width:100%;max-width:100%;overflow-x:auto;margin:17px 0 21px;border:1px solid #8668ff99;border-radius:13px;background:#090d27}
 .galaxy-table{width:100%;min-width:440px;border-collapse:separate;border-spacing:0;font-size:13px;line-height:1.65}
 .galaxy-table th{padding:13px 15px;text-align:left;color:white;font-weight:750;background:linear-gradient(110deg,#6634c9,#2458bd);border-bottom:1px solid #a78aff88}
 .galaxy-table td{padding:12px 15px;color:#e4e2ff;border-bottom:1px solid #6654a633;border-right:1px solid #6654a622;vertical-align:top}
 .galaxy-table tbody tr:nth-child(odd){background:#171b3d}.galaxy-table tbody tr:nth-child(even){background:#101630}
 .galaxy-table tbody tr:last-child td{border-bottom:0}
-
-/* AZIONI RISPOSTA */
 .message-actions{display:flex;gap:7px;margin-top:12px;padding-top:9px;border-top:1px solid #ffffff10}
 .copy-btn{border:1px solid #7968bd55;border-radius:8px;padding:6px 10px;color:#bcb5e9;background:#17183a;font-size:11px}
 .copy-btn:hover{background:#30205c;color:white}
-.typing{z-index:2;padding:0 28px 12px;color:#bba0ff;font-size:12px}
-.typing span{animation:blink 1.2s infinite}
+.typing{z-index:2;padding:0 28px 12px;color:#bba0ff;font-size:12px}.typing span{animation:blink 1.2s infinite}
 @keyframes blink{50%{opacity:.25}}
-
-/* BARRA MESSAGGI - STILE CHATGPT */
 .input-area{z-index:2;padding:12px 24px 7px}
-.input-box{
-  width:min(850px,100%);
-  margin:auto;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:9px 12px;
-  border-radius:28px;
-  border:1px solid #ffffff30;
-  background:#202123;
-  box-shadow:0 4px 20px #0005;
-  backdrop-filter:blur(20px);
-  transition:border-color .2s,box-shadow .2s;
-}
-.input-box:focus-within{
-  border-color:#ffffff60;
-  box-shadow:0 0 0 2px #ffffff0d,0 4px 25px #0005;
-}
-textarea{
-  flex:1;
-  min-width:0;
-  resize:none;
-  min-height:42px;
-  max-height:140px;
-  background:transparent;
-  border:0;
-  outline:0;
-  color:white;
-  padding:11px 5px;
-  font-size:14px;
-}
+.input-box{width:min(850px,100%);margin:auto;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:28px;border:1px solid #ffffff30;background:#202123;box-shadow:0 4px 20px #0005;backdrop-filter:blur(20px);transition:border-color .2s,box-shadow .2s}
+.input-box:focus-within{border-color:#ffffff60;box-shadow:0 0 0 2px #ffffff0d,0 4px 25px #0005}
+textarea{flex:1;min-width:0;resize:none;min-height:42px;max-height:140px;background:transparent;border:0;outline:0;color:white;padding:11px 5px;font-size:14px}
 textarea::placeholder{color:#a1a1aa}
-
-/* PULSANTE INVIO A DESTRA */
-.send{
-  width:40px;
-  height:40px;
-  flex-shrink:0;
-  border:0;
-  border-radius:50%;
-  color:#111111;
-  font-size:25px;
-  font-weight:700;
-  background:#ffffff;
-  box-shadow:none;
-  display:grid;
-  place-items:center;
-  transition:background .2s,transform .2s;
-}
-.send:hover{background:#dddddd;transform:scale(1.05)}
-.send:disabled{opacity:.45;cursor:not-allowed}
-
-/* PULSANTI STRUMENTI */
-.tool-btn{
-  width:40px;
-  height:40px;
-  flex-shrink:0;
-  border:0;
-  border-radius:50%;
-  background:transparent;
-  color:#eeeeee;
-  font-size:21px;
-  display:grid;
-  place-items:center;
-  transition:background .2s,color .2s;
-}
-.tool-btn:hover{background:#ffffff18;color:white}
-.tool-btn.recording{
-  background:#8b1e3f;
-  color:white;
-  animation:recordPulse 1s infinite;
-}
-.tool-btn.listening{background:#253e82;color:white}
+.send{width:40px;height:40px;flex-shrink:0;border:0;border-radius:50%;color:#111;font-size:25px;font-weight:700;background:#fff;display:grid;place-items:center;transition:background .2s,transform .2s}
+.send:hover{background:#ddd;transform:scale(1.05)}.send:disabled{opacity:.45;cursor:not-allowed}
+.tool-btn{width:40px;height:40px;flex-shrink:0;border:0;border-radius:50%;background:transparent;color:#eee;font-size:21px;display:grid;place-items:center;transition:background .2s,color .2s}
+.tool-btn:hover{background:#ffffff18;color:white}.tool-btn.recording{background:#8b1e3f;color:white;animation:recordPulse 1s infinite}.tool-btn.listening{background:#253e82;color:white}
 @keyframes recordPulse{50%{box-shadow:0 0 0 6px #ff4b8b22}}
 #fileInput{display:none}
-
-/* ALLEGATI */
 .attachments-preview{width:min(850px,100%);margin:0 auto 8px;display:flex;flex-wrap:wrap;gap:7px}
 .attachment-chip{display:flex;align-items:center;gap:8px;max-width:100%;padding:7px 10px;border:1px solid #ffffff30;border-radius:12px;background:#202123;color:#e4d9ff;font-size:11px}
 .attachment-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px}
@@ -201,58 +114,41 @@ textarea::placeholder{color:#a1a1aa}
 .input-hint{width:min(850px,100%);margin:6px auto 0;color:#9995c3;font-size:10px}
 .disclaimer{z-index:2;padding:8px 10px 13px;text-align:center;color:#888bb6;font-size:10px}
 .sidebar-backdrop{display:none}
-
-/* MOBILE */
 @media(max-width:850px){
- body{height:100dvh}
- .app{height:100dvh;overflow:hidden}
+ body{height:100dvh}.app{height:100dvh;overflow:hidden}
  .sidebar{position:fixed;left:0;top:0;bottom:0;width:min(310px,86vw);height:100dvh;z-index:21;transform:translateX(0);transition:transform .28s ease;overflow-y:auto}
  .sidebar.collapsed{width:min(310px,86vw);padding:24px 18px;border-right:1px solid #7464ff66;transform:translateX(-105%)}
  .sidebar-backdrop{display:block;position:fixed;inset:0;z-index:20;background:#020311b8;backdrop-filter:blur(4px);opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
  body.menu-open .sidebar-backdrop{opacity:1;visibility:visible}
  .main{width:100%;height:100%;min-width:0}
  .topbar{height:60px;min-height:60px;padding:0 12px;gap:8px}
- .top-left{gap:10px}
- .menu{width:42px;height:42px}
- .top-title{font-size:11px}
+ .top-left{gap:10px}.menu{width:42px;height:42px}.top-title{font-size:11px}
  #messages{padding:17px 12px;gap:17px}
- .welcome{padding:15px 5px}
- .welcome h2{font-size:clamp(29px,8vw,38px)}
- .welcome-icon{width:85px;height:85px;font-size:53px}
- .welcome p{font-size:12px}
- .chips{gap:9px}
- .chip{min-width:0;min-height:80px;padding:12px;font-size:12px}
+ .welcome{padding:15px 5px}.welcome h2{font-size:clamp(29px,8vw,38px)}
+ .welcome-icon{width:85px;height:85px;font-size:53px}.welcome p{font-size:12px}
+ .chips{gap:9px}.chip{min-width:0;min-height:80px;padding:12px;font-size:12px}
  .user{max-width:90%;padding:12px 14px;font-size:13px}
- .assistant-row{width:100%;gap:8px}
- .ai-avatar{width:31px;height:31px;font-size:18px}
- .assistant{padding:13px 12px}
- .assistant-content{font-size:13px;line-height:1.75}
+ .assistant-row{width:100%;gap:8px}.ai-avatar{width:31px;height:31px;font-size:18px}
+ .assistant{padding:13px 12px}.assistant-content{font-size:13px;line-height:1.75}
  .assistant-content h1{font-size:20px}.assistant-content h2{font-size:17px}.assistant-content h3{font-size:15px}
- .assistant-content pre{max-width:100%;font-size:12px}
- .table-wrap{-webkit-overflow-scrolling:touch}
+ .assistant-content pre{max-width:100%;font-size:12px}.table-wrap{-webkit-overflow-scrolling:touch}
  .input-area{padding:8px 10px 3px;padding-bottom:max(5px,env(safe-area-inset-bottom))}
  .input-box{gap:5px;padding:7px 9px;border-radius:25px}
  textarea{min-height:42px;max-height:115px;padding:11px 5px;font-size:16px}
- .send{width:38px;height:38px;font-size:23px}
- .tool-btn{width:36px;height:40px;font-size:19px}
- .disclaimer{padding:5px 8px 8px;font-size:9px}
- .typing{padding:0 15px 8px;font-size:11px}
+ .send{width:38px;height:38px;font-size:23px}.tool-btn{width:36px;height:40px;font-size:19px}
+ .disclaimer{padding:5px 8px 8px;font-size:9px}.typing{padding:0 15px 8px;font-size:11px}
  .input-hint{padding-left:4px}
 }
 @media(max-width:390px){
- .top-title{max-width:155px}
- .status{padding:6px 7px;font-size:9px}
- .chips{grid-template-columns:1fr}
- .chip{min-height:62px}
+ .top-title{max-width:155px}.status{padding:6px 7px;font-size:9px}
+ .chips{grid-template-columns:1fr}.chip{min-height:62px}
  .chip span{display:inline;margin-right:7px}
- .input-box{gap:3px;padding:6px}
- .tool-btn{width:32px;height:38px;font-size:18px}
+ .input-box{gap:3px;padding:6px}.tool-btn{width:32px;height:38px;font-size:18px}
  .send{width:36px;height:36px}
 }
 @media(max-width:850px) and (orientation:landscape){
  .welcome-icon{width:60px;height:60px;font-size:38px;margin-bottom:10px}
- .welcome{padding:5px}
- .welcome h2{font-size:26px}
+ .welcome{padding:5px}.welcome h2{font-size:26px}
  .chips{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:12px}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
@@ -261,13 +157,11 @@ textarea::placeholder{color:#a1a1aa}
 
 <body>
 <div class="app">
-
 <aside class="sidebar collapsed" id="sidebar">
   <div class="brand">
     <div class="logo">✦</div>
     <div><h1>Lumos <span>IA</span></h1><p>LA TUA INTELLIGENZA ARTIFICIALE</p></div>
   </div>
-
   <button class="new-chat" id="newChat">＋ &nbsp; Nuova conversazione</button>
   <div class="side-label">Conversazioni recenti</div>
   <div id="chatList"></div>
@@ -278,6 +172,18 @@ textarea::placeholder{color:#a1a1aa}
     <button class="auth-btn" id="loginBtn">Accedi con Google</button>
     <button class="auth-btn secondary" id="logoutBtn" hidden>Esci dall'account</button>
     <div id="syncStatus">Accedi per sincronizzare le chat tra dispositivi.</div>
+
+    <div class="plan-box">
+      <div class="plan-heading">
+        <span>✦ Il tuo piano</span>
+        <span class="plan-pill" id="planName">FREE</span>
+      </div>
+      <div class="plan-description" id="planDescription">50 messaggi ogni 2 ore · 1 allegato per messaggio.</div>
+      <div id="ownerLabel" class="owner-label" hidden>✦ PROPRIETARIO · PREMIUM GRATUITO</div>
+      <button class="plan-btn" id="baseBtn">Passa a BASE · 2,99 €/mese</button>
+      <button class="plan-btn premium" id="premiumBtn">Passa a PREMIUM · 4,99 €/mese</button>
+      <div id="planStatus" class="plan-description" style="margin-top:9px;margin-bottom:0">Accedi per gestire il tuo piano.</div>
+    </div>
   </div>
 
   <div class="sidebar-footer" style="margin-top:12px">✦ &nbsp; Lumos IA<br><small>Il tuo universo intelligente</small></div>
@@ -299,17 +205,10 @@ textarea::placeholder{color:#a1a1aa}
 
   <div class="input-area">
     <div class="attachments-preview" id="attachmentsPreview"></div>
-
     <form class="input-box" id="form">
       <input id="fileInput" type="file" multiple accept="image/*,.pdf,.txt,.docx,audio/*">
-
-      <!-- ALLEGATI A SINISTRA -->
       <button class="tool-btn" id="attachBtn" type="button" title="Allega file" aria-label="Allega file">＋</button>
-
-      <!-- TESTO AL CENTRO -->
       <textarea id="prompt" rows="1" placeholder="Scrivi un messaggio..." aria-label="Messaggio"></textarea>
-
-      <!-- COMANDI A DESTRA -->
       <button class="tool-btn" id="dictationBtn" type="button" title="Dettatura vocale" aria-label="Dettatura vocale">🎙️</button>
       <button class="tool-btn" id="recordBtn" type="button" title="Registra un audio" aria-label="Registra audio">🎧</button>
       <button class="send" id="send" type="submit" aria-label="Invia">↑</button>
@@ -321,12 +220,26 @@ textarea::placeholder{color:#a1a1aa}
 </div>
 
 <script>
-/* CONFIGURAZIONE SUPABASE */
+/* CONFIGURAZIONE */
 const SUPABASE_URL='https://vszyugcnkwcrcdfncary.supabase.co';
-const SUPABASE_KEY='sb_publishable_-LCZeeHAAdQvuy6zdzOIfg_U1G1p133';
+const SUPABASE_KEY='sb_publishable_-LCZeeHAAdQqvuy6zdzOIfg_U1G1p133';
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-/* ELEMENTI */
+const OWNER_EMAILS=[
+  'alessiomasoni09@gmail.com',
+  'alessiomasoni12@gmail.com'
+];
+
+const PLANS={
+  free:{name:'FREE',messages:50,attachments:1,description:'50 messaggi ogni 2 ore · 1 allegato per messaggio.'},
+  base:{name:'BASE',messages:200,attachments:3,description:'200 messaggi ogni 2 ore · 3 allegati per messaggio.'},
+  premium:{name:'PREMIUM',messages:1000,attachments:5,description:'Fino a 1000 messaggi ogni 2 ore · 5 allegati per messaggio.'}
+};
+
+let currentPlan='free';
+let isOwner=false;
+let subscriptionStatus='inactive';
+
 const form=document.querySelector('#form');
 const input=document.querySelector('#prompt');
 const messages=document.querySelector('#messages');
@@ -345,11 +258,18 @@ const dictationBtn=document.querySelector('#dictationBtn');
 const recordBtn=document.querySelector('#recordBtn');
 const attachmentsPreview=document.querySelector('#attachmentsPreview');
 const inputHint=document.querySelector('#inputHint');
+const planName=document.querySelector('#planName');
+const planDescription=document.querySelector('#planDescription');
+const planStatus=document.querySelector('#planStatus');
+const ownerLabel=document.querySelector('#ownerLabel');
+const baseBtn=document.querySelector('#baseBtn');
+const premiumBtn=document.querySelector('#premiumBtn');
 
 let history=[];
 let conversations=[];
 let activeId=null;
 let currentUser=null;
+let currentSession=null;
 let syncPromise=null;
 let pendingAttachments=[];
 let mediaRecorder=null;
@@ -360,21 +280,15 @@ let isDictating=false;
 
 const MAX_FILE_SIZE=2*1024*1024;
 const MAX_TOTAL_SIZE=2*1024*1024;
-const MAX_ATTACHMENTS=5;
 
-function storageKey(){
-  return currentUser?'lumos_chats_'+currentUser.id:'lumos_chats';
-}
+function storageKey(){return currentUser?'lumos_chats_'+currentUser.id:'lumos_chats'}
 function readLocalChats(key){
-  try{
-    const value=JSON.parse(localStorage.getItem(key)||'[]');
-    return Array.isArray(value)?value:[];
-  }catch(e){return[]}
+  try{const value=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(value)?value:[]}
+  catch(e){return[]}
 }
-function saveChats(){
-  localStorage.setItem(storageKey(),JSON.stringify(conversations));
-}
+function saveChats(){localStorage.setItem(storageKey(),JSON.stringify(conversations))}
 function setSyncStatus(text){syncStatus.textContent=text}
+
 function updateAccountUI(){
   if(currentUser){
     accountEmail.textContent=currentUser.email||'Account Google collegato';
@@ -385,6 +299,176 @@ function updateAccountUI(){
     loginBtn.hidden=false;
     logoutBtn.hidden=true;
   }
+}
+
+function isOwnerAccount(user){
+  return !!user?.email&&OWNER_EMAILS.includes(user.email.toLowerCase());
+}
+
+function updatePlanUI(){
+  const plan=PLANS[currentPlan]||PLANS.free;
+  planName.textContent=isOwner?'PREMIUM':plan.name;
+  planDescription.textContent=isOwner
+    ?'Accesso proprietario: Premium gratuito con utilizzo illimitato.'
+    :plan.description;
+
+  ownerLabel.hidden=!isOwner;
+  baseBtn.hidden=isOwner;
+  premiumBtn.hidden=isOwner;
+
+  if(!currentUser){
+    planName.textContent='FREE';
+    planDescription.textContent=PLANS.free.description;
+    planStatus.textContent='Accedi con Google per acquistare un piano.';
+    baseBtn.disabled=false;
+    premiumBtn.disabled=false;
+    return;
+  }
+
+  if(isOwner){
+    planStatus.textContent='Il tuo account proprietario ha Premium gratuito.';
+    return;
+  }
+
+  if(currentPlan==='free'){
+    planStatus.textContent='Stai utilizzando il piano gratuito.';
+  }else if(subscriptionStatus==='active'||subscriptionStatus==='trialing'){
+    planStatus.textContent='✓ Abbonamento attivo. Il tuo piano è aggiornato.';
+  }else{
+    planStatus.textContent='Piano non attivo. Puoi scegliere un abbonamento.';
+  }
+
+  baseBtn.disabled=currentPlan==='base'||currentPlan==='premium';
+  premiumBtn.disabled=currentPlan==='premium';
+  baseBtn.textContent=currentPlan==='base'?'✓ Piano BASE attivo':'Passa a BASE · 2,99 €/mese';
+  premiumBtn.textContent=currentPlan==='premium'?'✓ Piano PREMIUM attivo':'Passa a PREMIUM · 4,99 €/mese';
+}
+
+/* CARICAMENTO PIANO DA SUPABASE */
+async function loadSubscription(){
+  if(!currentUser){
+    currentPlan='free';
+    isOwner=false;
+    subscriptionStatus='inactive';
+    updatePlanUI();
+    return;
+  }
+
+  isOwner=isOwnerAccount(currentUser);
+
+  if(isOwner){
+    currentPlan='premium';
+    subscriptionStatus='active';
+    updatePlanUI();
+    return;
+  }
+
+  try{
+    const {data,error}=await supabaseClient
+      .from('lumos_subscriptions')
+      .select('plan,status,current_period_end')
+      .eq('user_id',currentUser.id)
+      .maybeSingle();
+
+    if(error)throw error;
+
+    if(data){
+      subscriptionStatus=data.status||'inactive';
+      const active=['active','trialing'].includes(subscriptionStatus);
+      currentPlan=active&&['base','premium'].includes(data.plan)?data.plan:'free';
+
+      if(data.current_period_end&&new Date(data.current_period_end)<new Date()){
+        currentPlan='free';
+      }
+    }else{
+      currentPlan='free';
+      subscriptionStatus='inactive';
+    }
+  }catch(error){
+    console.error('Errore caricamento piano:',error);
+    currentPlan='free';
+    subscriptionStatus='inactive';
+    planStatus.textContent='Impossibile verificare il piano. Riprova più tardi.';
+  }
+
+  updatePlanUI();
+  renderAttachments();
+}
+
+/* CHECKOUT STRIPE */
+async function startCheckout(plan){
+  if(!currentUser){
+    alert('Per acquistare un piano devi prima accedere con Google.');
+    return;
+  }
+  if(isOwner){
+    alert('Il tuo account proprietario ha già Premium gratuito!');
+    return;
+  }
+
+  const button=plan==='base'?baseBtn:premiumBtn;
+  const oldText=button.textContent;
+  button.disabled=true;
+  button.textContent='Apertura pagamento...';
+
+  try{
+    const {data,error}=await supabaseClient.auth.getSession();
+    if(error)throw error;
+    const accessToken=data.session?.access_token;
+    if(!accessToken)throw new Error('Sessione scaduta. Effettua nuovamente l’accesso.');
+
+    const response=await fetch('/api/create-checkout-session',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+accessToken
+      },
+      body:JSON.stringify({plan})
+    });
+
+    const result=await response.json();
+    if(!response.ok)throw new Error(result.error||'Impossibile avviare il pagamento.');
+    if(!result.url)throw new Error('Stripe non ha restituito il link di pagamento.');
+
+    window.location.href=result.url;
+  }catch(error){
+    console.error('Checkout:',error);
+    alert(error.message||'Errore durante l’apertura del pagamento.');
+    button.disabled=false;
+    button.textContent=oldText;
+  }
+}
+
+baseBtn.onclick=()=>startCheckout('base');
+premiumBtn.onclick=()=>startCheckout('premium');
+
+async function checkCheckoutReturn(){
+  const params=new URLSearchParams(window.location.search);
+  const checkout=params.get('checkout');
+
+  if(checkout==='success'){
+    planStatus.textContent='Pagamento completato. Verifica dell’abbonamento in corso...';
+    for(let i=0;i<8;i++){
+      await loadSubscription();
+      if(currentPlan!=='free')break;
+      await new Promise(resolve=>setTimeout(resolve,2000));
+    }
+    if(currentPlan!=='free'){
+      alert('Pagamento ricevuto! Il tuo piano '+currentPlan.toUpperCase()+' è attivo.');
+    }else{
+      alert('Pagamento completato. L’attivazione potrebbe richiedere qualche istante. Ricarica la pagina tra poco.');
+    }
+    historyReplaceURL();
+  }else if(checkout==='cancel'){
+    alert('Pagamento annullato. Non è stato effettuato alcun addebito.');
+    historyReplaceURL();
+  }
+}
+function historyReplaceURL(){
+  const url=new URL(window.location.href);
+  url.searchParams.delete('checkout');
+  url.searchParams.delete('session_id');
+  window.history.replaceState({},'',url.pathname+url.search+url.hash);
 }
 
 /* SINCRONIZZAZIONE CLOUD */
@@ -402,10 +486,7 @@ async function uploadChat(chat){
 async function persistChat(chat){
   chat.updated_at=new Date().toISOString();
   saveChats();
-  if(!currentUser){
-    setSyncStatus('Chat salvata su questo dispositivo.');
-    return;
-  }
+  if(!currentUser){setSyncStatus('Chat salvata su questo dispositivo.');return}
   try{
     await uploadChat(chat);
     setSyncStatus('✓ Chat salvata e sincronizzata online.');
@@ -476,6 +557,7 @@ loginBtn.onclick=async()=>{
     loginBtn.textContent='Accedi con Google';
   }
 };
+
 logoutBtn.onclick=async()=>{
   logoutBtn.disabled=true;
   const {error}=await supabaseClient.auth.signOut();
@@ -484,11 +566,20 @@ logoutBtn.onclick=async()=>{
 };
 
 supabaseClient.auth.onAuthStateChange((event,session)=>{
+  currentSession=session||null;
   currentUser=session?.user||null;
   updateAccountUI();
-  if(currentUser&&(event==='SIGNED_IN'||event==='INITIAL_SESSION')){
-    setTimeout(()=>syncCloudChats(),0);
+  if(currentUser&&(event==='SIGNED_IN'||event==='INITIAL_SESSION'||event==='TOKEN_REFRESHED')){
+    setTimeout(async()=>{
+      await loadSubscription();
+      await syncCloudChats();
+      if(event==='SIGNED_IN')await checkCheckoutReturn();
+    },0);
   }else if(!currentUser&&event==='SIGNED_OUT'){
+    currentPlan='free';
+    isOwner=false;
+    subscriptionStatus='inactive';
+    updatePlanUI();
     conversations=readLocalChats('lumos_chats');
     history=[];
     activeId=null;
@@ -501,9 +592,16 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{
 async function initializeAuth(){
   const {data,error}=await supabaseClient.auth.getSession();
   if(error){setSyncStatus('Impossibile verificare la sessione.');return}
+  currentSession=data.session||null;
   currentUser=data.session?.user||null;
   updateAccountUI();
-  if(currentUser)await syncCloudChats();
+  if(currentUser){
+    await loadSubscription();
+    await syncCloudChats();
+    await checkCheckoutReturn();
+  }else{
+    updatePlanUI();
+  }
 }
 
 /* CRONOLOGIA */
@@ -554,7 +652,7 @@ function loadChat(id){
   renderList();
 }
 
-/* SICUREZZA E FORMATTAZIONE */
+/* FORMATTAZIONE */
 function escapeHTML(text){
   return String(text).replace(/[&<>"']/g,char=>({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
@@ -591,9 +689,7 @@ function formatMessage(text){
     if(row.endsWith('|'))row=row.slice(0,-1);
     return row.split(/(?<!\\)\|/).map(cell=>cell.trim().replace(/\\\|/g,'|'));
   }
-  function isTableSeparator(line){
-    return splitTableRow(line).every(cell=>/^:?-{3,}:?$/.test(cell));
-  }
+  function isTableSeparator(line){return splitTableRow(line).every(cell=>/^:?-{3,}:?$/.test(cell))}
   function getAlignment(value){
     if(value.startsWith(':')&&value.endsWith(':'))return'center';
     if(value.endsWith(':'))return'right';
@@ -602,27 +698,19 @@ function formatMessage(text){
 
   const lines=safe.split('\n');
   let html='',listType=null,paragraph=[];
-  function closeList(){
-    if(listType){html+=listType==='ul'?'</ul>':'</ol>';listType=null}
-  }
-  function closeParagraph(){
-    if(paragraph.length){html+='<p>'+paragraph.join('<br>')+'</p>';paragraph=[]}
-  }
+  function closeList(){if(listType){html+=listType==='ul'?'</ul>':'</ol>';listType=null}}
+  function closeParagraph(){if(paragraph.length){html+='<p>'+paragraph.join('<br>')+'</p>';paragraph=[]}}
   function createTable(start){
     const headers=splitTableRow(lines[start]);
     const separators=splitTableRow(lines[start+1]);
     let table='<div class="table-wrap" role="region" aria-label="Tabella" tabindex="0"><table class="galaxy-table"><thead><tr>';
-    headers.forEach((cell,index)=>{
-      table+='<th style="text-align:'+getAlignment(separators[index]||'---')+'">'+inlineFormat(cell)+'</th>';
-    });
+    headers.forEach((cell,index)=>{table+='<th style="text-align:'+getAlignment(separators[index]||'---')+'">'+inlineFormat(cell)+'</th>'});
     table+='</tr></thead><tbody>';
     let index=start+2;
     while(index<lines.length&&lines[index].includes('|')&&lines[index].trim()!==''){
       const cells=splitTableRow(lines[index]);
       table+='<tr>';
-      headers.forEach((header,column)=>{
-        table+='<td style="text-align:'+getAlignment(separators[column]||'---')+'">'+inlineFormat(cells[column]??'')+'</td>';
-      });
+      headers.forEach((header,column)=>{table+='<td style="text-align:'+getAlignment(separators[column]||'---')+'">'+inlineFormat(cells[column]??'')+'</td>'});
       table+='</tr>';
       index++;
     }
@@ -641,7 +729,6 @@ function formatMessage(text){
     if(/^## (.+)$/.test(line)){closeParagraph();closeList();html+='<h2>'+inlineFormat(line.replace(/^## /,''))+'</h2>';i++;continue}
     if(/^# (.+)$/.test(line)){closeParagraph();closeList();html+='<h1>'+inlineFormat(line.replace(/^# /,''))+'</h1>';i++;continue}
     if(/^\s*([-*_])\1{2,}\s*$/.test(line)){closeParagraph();closeList();html+='<hr>';i++;continue}
-
     const unordered=line.match(/^\s*[-*+]\s+(.+)$/);
     const ordered=line.match(/^\s*\d+[.)]\s+(.+)$/);
     if(unordered||ordered){
@@ -661,7 +748,7 @@ function formatMessage(text){
   return html;
 }
 
-/* CREA MESSAGGI */
+/* MESSAGGI */
 function bubble(text,role,attachmentNames=[]){
   if(role==='assistant'){
     const row=document.createElement('div');
@@ -731,9 +818,7 @@ function fileToDataURL(file){
 function textToDataURL(text){
   const bytes=new TextEncoder().encode(text);
   let binary='';
-  for(let i=0;i<bytes.length;i+=0x8000){
-    binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
-  }
+  for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
   return 'data:text/plain;base64,'+btoa(binary);
 }
 async function extractPDF(file){
@@ -770,22 +855,21 @@ function renderAttachments(){
     remove.className='remove-attachment';
     remove.textContent='×';
     remove.title='Rimuovi allegato';
-    remove.onclick=()=>{
-      pendingAttachments.splice(index,1);
-      renderAttachments();
-    };
+    remove.onclick=()=>{pendingAttachments.splice(index,1);renderAttachments()};
     chip.append(label,remove);
     attachmentsPreview.appendChild(chip);
   });
   inputHint.textContent=pendingAttachments.length
-    ?pendingAttachments.length+' allegato/i pronti per l’invio'
+    ?pendingAttachments.length+' allegato/i pronti per l’invio · limite '+(isOwner?5:(PLANS[currentPlan]||PLANS.free).attachments)
     :'＋ Allega file · 🎙️ Dettatura · 🎧 Registra un audio';
 }
 async function addFiles(files){
+  const attachmentLimit=isOwner?5:(PLANS[currentPlan]||PLANS.free).attachments;
+
   for(const file of Array.from(files)){
     try{
-      if(pendingAttachments.length>=MAX_ATTACHMENTS){
-        alert('Puoi aggiungere massimo 5 allegati per messaggio.');
+      if(pendingAttachments.length>=attachmentLimit){
+        alert('Il tuo piano consente massimo '+attachmentLimit+' allegato/i per messaggio.');
         break;
       }
       if(file.size>MAX_FILE_SIZE){
@@ -836,17 +920,14 @@ async function addFiles(files){
 attachBtn.onclick=()=>fileInput.click();
 fileInput.addEventListener('change',()=>addFiles(fileInput.files));
 
-/* DETTATURA VOCALE */
+/* DETTATURA */
 function startDictation(){
   const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SpeechRecognition){
     alert('La dettatura vocale non è supportata da questo browser. Prova con Google Chrome.');
     return;
   }
-  if(isDictating){
-    recognition.stop();
-    return;
-  }
+  if(isDictating){recognition.stop();return}
 
   recognition=new SpeechRecognition();
   recognition.lang='it-IT';
@@ -869,9 +950,7 @@ function startDictation(){
     input.style.height=Math.min(input.scrollHeight,115)+'px';
   };
   input.dataset.beforeDictation=input.value?input.value+' ':'';
-  recognition.onerror=(event)=>{
-    if(event.error!=='no-speech')console.error('Errore dettatura:',event.error);
-  };
+  recognition.onerror=(event)=>{if(event.error!=='no-speech')console.error('Errore dettatura:',event.error)};
   recognition.onend=()=>{
     isDictating=false;
     dictationBtn.classList.remove('listening');
@@ -897,9 +976,7 @@ async function startRecording(){
 
     mediaRecorder=new MediaRecorder(stream,mimeType?{mimeType}:undefined);
     recordedChunks=[];
-    mediaRecorder.ondataavailable=event=>{
-      if(event.data.size>0)recordedChunks.push(event.data);
-    };
+    mediaRecorder.ondataavailable=event=>{if(event.data.size>0)recordedChunks.push(event.data)};
     mediaRecorder.onstop=async()=>{
       const actualType=mediaRecorder.mimeType||'audio/webm';
       const normalizedType=actualType.startsWith('audio/mp4')?'audio/mp4':'audio/webm';
@@ -928,22 +1005,9 @@ async function startRecording(){
     resetRecordButton();
   }
 }
-function stopRecording(){
-  if(mediaRecorder&&mediaRecorder.state!=='inactive'){
-    mediaRecorder.stop();
-  }
-  isRecording=false;
-}
-function resetRecordButton(){
-  isRecording=false;
-  recordBtn.classList.remove('recording');
-  recordBtn.textContent='🎧';
-  renderAttachments();
-}
-recordBtn.onclick=()=>{
-  if(isRecording)stopRecording();
-  else startRecording();
-};
+function stopRecording(){if(mediaRecorder&&mediaRecorder.state!=='inactive')mediaRecorder.stop();isRecording=false}
+function resetRecordButton(){isRecording=false;recordBtn.classList.remove('recording');recordBtn.textContent='🎧';renderAttachments()}
+recordBtn.onclick=()=>{if(isRecording)stopRecording();else startRecording()};
 
 /* INVIO MESSAGGI */
 async function submit(text){
@@ -953,11 +1017,17 @@ async function submit(text){
   if(!activeId)activeId=Date.now().toString();
 
   const outgoingAttachments=pendingAttachments.slice();
+  const attachmentLimit=isOwner?5:(PLANS[currentPlan]||PLANS.free).attachments;
+  if(outgoingAttachments.length>attachmentLimit){
+    alert('Il tuo piano consente massimo '+attachmentLimit+' allegato/i per messaggio.');
+    return;
+  }
+
   const attachmentNames=outgoingAttachments.map(item=>item.name);
   const historyText=text+(attachmentNames.length?'\n[Allegati: '+attachmentNames.join(', ')+']':'');
-
   const wasEmpty=history.length===0;
-  bubble(text||'Ho inviato un allegato.', 'user',attachmentNames);
+
+  bubble(text||'Ho inviato un allegato.','user',attachmentNames);
   history.push({role:'user',content:historyText});
 
   let chat;
@@ -987,23 +1057,29 @@ async function submit(text){
   if(chat)await persistChat(chat);
 
   try{
+    const {data:sessionData}=await supabaseClient.auth.getSession();
+    const accessToken=sessionData.session?.access_token;
+
+    const headers={'Content-Type':'application/json'};
+    if(accessToken)headers.Authorization='Bearer '+accessToken;
+
     const response=await fetch('/api/chat',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers,
       body:JSON.stringify({
         messages:history.slice(-12),
-        attachments:outgoingAttachments.map(item=>({
-          name:item.name,
-          data:item.data
-        }))
+        attachments:outgoingAttachments.map(item=>({name:item.name,data:item.data}))
       })
     });
 
     const data=await response.json();
     if(!response.ok)throw new Error(data.error||'Errore del server');
 
-    if(data.transcript){
-      inputHint.textContent='Audio trascritto correttamente.';
+    if(data.transcript)inputHint.textContent='Audio trascritto correttamente.';
+
+    if(data.plan&&['free','base','premium'].includes(data.plan)){
+      if(!isOwner)currentPlan=data.plan;
+      updatePlanUI();
     }
 
     const answer=data.reply||'Non ho ricevuto una risposta.';
@@ -1034,53 +1110,35 @@ async function submit(text){
   }
 }
 
-/* EVENTI */
+/* EVENTI INTERFACCIA */
 document.querySelector('#newChat').onclick=()=>{
   if(window.innerWidth<=850)closeMobileMenu();
   newChat();
 };
-function openMobileMenu(){
-  sidebar.classList.remove('collapsed');
-  document.body.classList.add('menu-open');
-}
-function closeMobileMenu(){
-  sidebar.classList.add('collapsed');
-  document.body.classList.remove('menu-open');
-}
+function openMobileMenu(){sidebar.classList.remove('collapsed');document.body.classList.add('menu-open')}
+function closeMobileMenu(){sidebar.classList.add('collapsed');document.body.classList.remove('menu-open')}
 document.querySelector('#menu').onclick=()=>{
   if(window.innerWidth<=850){
     if(document.body.classList.contains('menu-open'))closeMobileMenu();
     else openMobileMenu();
-  }else{
-    sidebar.classList.toggle('collapsed');
-  }
+  }else sidebar.classList.toggle('collapsed');
 };
 sidebarBackdrop.onclick=closeMobileMenu;
 window.addEventListener('resize',()=>{
   if(window.innerWidth>850){
     document.body.classList.remove('menu-open');
     sidebar.classList.remove('collapsed');
-  }else{
-    sidebar.classList.add('collapsed');
-  }
+  }else sidebar.classList.add('collapsed');
 });
-document.addEventListener('keydown',event=>{
-  if(event.key==='Escape')closeMobileMenu();
-});
+document.addEventListener('keydown',event=>{if(event.key==='Escape')closeMobileMenu()});
 
-form.addEventListener('submit',event=>{
-  event.preventDefault();
-  submit(input.value);
-});
+form.addEventListener('submit',event=>{event.preventDefault();submit(input.value)});
 input.addEventListener('input',()=>{
   input.style.height='auto';
   input.style.height=Math.min(input.scrollHeight,140)+'px';
 });
 input.addEventListener('keydown',event=>{
-  if(event.key==='Enter'&&!event.shiftKey){
-    event.preventDefault();
-    form.requestSubmit();
-  }
+  if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();form.requestSubmit()}
 });
 messages.addEventListener('click',event=>{
   const chip=event.target.closest('.chip');
@@ -1093,6 +1151,7 @@ conversations=readLocalChats('lumos_chats');
 renderList();
 welcomeScreen();
 updateAccountUI();
+updatePlanUI();
 initializeAuth();
 </script>
 </body>
