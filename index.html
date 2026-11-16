@@ -222,7 +222,14 @@ textarea::placeholder{color:#a1a1aa}
 /* CONFIGURAZIONE */
 const SUPABASE_URL='https://vszyugcnkwcrcdfncary.supabase.co';
 const SUPABASE_KEY='sb_publishable_-LCZeeHAAdqQvuy6zdzOIfg_U1G1p133';
-const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
+  auth:{
+    flowType:'pkce',
+    detectSessionInUrl:true,
+    persistSession:true,
+    autoRefreshToken:true
+  }
+});
 
 const OWNER_EMAILS=[
   'alessiomasoni09@gmail.com',
