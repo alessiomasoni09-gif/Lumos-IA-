@@ -5,6 +5,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#050619">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lumos IA">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Lumos IA — Il tuo assistente intelligente</title>
 <meta name="description" content="Scopri Lumos IA, il tuo assistente intelligente: chiedi, crea, studia e trova nuove idee in un universo di possibilità.">
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -65,6 +70,10 @@ button,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cu
 .top-left{display:flex;align-items:center;gap:14px;min-width:0}
 .menu{width:41px;height:41px;flex-shrink:0;border-radius:12px;border:1px solid #6e65b966;background:#14183b;color:white;font-size:19px}
 .top-title{font-size:13px;color:#d8d7ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top-actions{display:flex;align-items:center;gap:9px;flex-shrink:0}
+.install-app{display:none;align-items:center;gap:7px;padding:9px 13px;border-radius:30px;border:1px solid #a98cff88;background:linear-gradient(110deg,#7139d7aa,#2859c5aa);color:#fff;font-size:11px;font-weight:700;white-space:nowrap}
+.install-app.visible{display:flex}
+.install-app:hover{filter:brightness(1.15)}
 .status{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:30px;border:1px solid #36b78a55;background:#103c3444;color:#8fffd0;font-size:11px;flex-shrink:0}
 .dot{width:8px;height:8px;border-radius:50%;background:#3cffad;box-shadow:0 0 12px #3cffad;animation:pulse 1.8s infinite}
 @keyframes pulse{50%{opacity:.4}}
@@ -230,7 +239,7 @@ textarea::placeholder{color:#a1a1aa}
       <button class="menu" id="menu" aria-label="Apri menu">☰</button>
       <div class="top-title"><img class="top-logo" src="/lumos-icon.png" alt="">Il tuo assistente intelligente</div>
     </div>
-    <div class="status"><span class="dot"></span> Online</div>
+    <div class="top-actions"><button class="install-app" id="installAppBtn" type="button">＋ Installa app</button><div class="status"><span class="dot"></span> Online</div></div>
   </header>
 
   <section id="messages" aria-live="polite"></section>
@@ -1443,6 +1452,44 @@ welcomeScreen();
 updateAccountUI();
 updatePlanUI();
 initializeAuth();
+</script>
+
+<script>
+/* FUNZIONI PWA: installazione e cache dell'interfaccia */
+let lumosInstallPrompt=null;
+const installAppBtn=document.getElementById('installAppBtn');
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isStandalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+
+if(installAppBtn&&!isStandalone){
+  if(isIOS){
+    installAppBtn.classList.add('visible');
+    installAppBtn.addEventListener('click',()=>alert('Per installare Lumos IA su iPhone/iPad:\n\n1. Apri questo sito con Safari.\n2. Tocca il pulsante Condividi.\n3. Seleziona “Aggiungi alla schermata Home”.\n4. Tocca “Aggiungi”.'));
+  }else{
+    window.addEventListener('beforeinstallprompt',event=>{
+      event.preventDefault();
+      lumosInstallPrompt=event;
+      installAppBtn.classList.add('visible');
+    });
+    installAppBtn.addEventListener('click',async()=>{
+      if(!lumosInstallPrompt){
+        alert('Per installare Lumos IA, apri il menu del browser e scegli “Installa Lumos IA” oppure “Installa app”.');
+        return;
+      }
+      lumosInstallPrompt.prompt();
+      await lumosInstallPrompt.userChoice;
+      lumosInstallPrompt=null;
+      installAppBtn.classList.remove('visible');
+    });
+    window.addEventListener('appinstalled',()=>installAppBtn.classList.remove('visible'));
+  }
+}
+
+if('serviceWorker' in navigator && location.protocol==='https:'){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(error=>console.warn('Lumos IA: registrazione PWA non riuscita',error));
+  });
+}
 </script>
 </body>
 </html>
