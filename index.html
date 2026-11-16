@@ -5,7 +5,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#050619">
-<title>Lumos IA — Galaxy Experience</title>
+<title>Lumos IA — Il tuo assistente intelligente</title>
+<meta name="description" content="Scopri Lumos IA, il tuo assistente intelligente: chiedi, crea, studia e trova nuove idee in un universo di possibilità.">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/lumos-icon.png">
+<link rel="apple-touch-icon" href="/lumos-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Lumos IA">
+<meta property="og:title" content="Lumos IA — Il tuo assistente intelligente">
+<meta property="og:description" content="Chiedi, crea, studia e trova nuove idee con Lumos IA.">
+<meta property="og:image" content="https://lumos-ia-livid.vercel.app/lumos-og.png">
+<meta property="og:url" content="https://lumos-ia-livid.vercel.app/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Lumos IA — Il tuo assistente intelligente">
+<meta name="twitter:description" content="Chiedi, crea, studia e trova nuove idee con Lumos IA.">
+<meta name="twitter:image" content="https://lumos-ia-livid.vercel.app/lumos-og.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
@@ -21,8 +35,12 @@ button,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cu
 .sidebar{width:290px;flex-shrink:0;z-index:20;display:flex;flex-direction:column;padding:24px 18px;background:linear-gradient(180deg,#070b22f5,#09091ff5);border-right:1px solid #7464ff66;box-shadow:8px 0 50px #0007;transition:width .3s,padding .3s,transform .3s;overflow:hidden}
 .sidebar.collapsed{width:0;padding:0;border:0}
 .brand{display:flex;align-items:center;gap:13px;margin-bottom:35px;white-space:nowrap}
-.logo{width:52px;height:52px;display:grid;place-items:center;font-size:35px;flex-shrink:0;border-radius:17px;background:radial-gradient(circle,#a9baff,#6635ff 55%,#180d56);border:1px solid #a98cff;box-shadow:0 0 25px #784bff,0 0 55px #385dff55}
+.logo{width:52px;height:52px;display:grid;place-items:center;overflow:hidden;font-size:35px;flex-shrink:0;border-radius:17px;background:radial-gradient(circle,#a9baff,#6635ff 55%,#180d56);border:1px solid #a98cff;box-shadow:0 0 25px #784bff,0 0 55px #385dff55}
 .brand h1{margin:0;font-size:23px}.brand h1 span{color:#a978ff}.brand p{margin:4px 0 0;color:#aaa6d8;font-size:10px}
+.logo img{width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit}
+.ai-avatar img{width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit}
+.welcome-icon img{width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit}
+.top-logo{width:24px;height:24px;vertical-align:middle;border-radius:7px;margin-right:7px}
 .new-chat{padding:15px 13px;border:1px solid #a56cff;border-radius:13px;color:white;text-align:left;background:linear-gradient(110deg,#7028e9,#253ed0);box-shadow:0 0 25px #713cff55;white-space:nowrap}
 .new-chat:hover{transform:translateY(-2px)}
 .side-label{margin:25px 8px 13px;color:#8e91c2;font-size:11px;letter-spacing:1.5px;text-transform:uppercase}
@@ -171,7 +189,7 @@ textarea::placeholder{color:#a1a1aa}
 <div class="app">
 <aside class="sidebar collapsed" id="sidebar">
   <div class="brand">
-    <div class="logo">✦</div>
+    <div class="logo"><img src="/lumos-icon.png" alt="Logo Lumos IA"></div>
     <div><h1>Lumos <span>IA</span></h1><p>LA TUA INTELLIGENZA ARTIFICIALE</p></div>
   </div>
   <button class="new-chat" id="newChat">＋ &nbsp; Nuova conversazione</button>
@@ -210,7 +228,7 @@ textarea::placeholder{color:#a1a1aa}
   <header class="topbar">
     <div class="top-left">
       <button class="menu" id="menu" aria-label="Apri menu">☰</button>
-      <div class="top-title">✦ &nbsp; Il tuo assistente intelligente</div>
+      <div class="top-title"><img class="top-logo" src="/lumos-icon.png" alt="">Il tuo assistente intelligente</div>
     </div>
     <div class="status"><span class="dot"></span> Online</div>
   </header>
@@ -890,7 +908,7 @@ chatList.addEventListener('click',event=>{
 function welcomeScreen(){
   messages.innerHTML=`
     <div class="welcome">
-      <div class="welcome-icon">✦</div>
+      <div class="welcome-icon"><img src="/lumos-icon.png" alt="Logo Lumos IA"></div>
       <h2>Lumos <span>IA</span></h2>
       <p class="welcome-subtitle">Le tue idee. Il nostro futuro.</p>
       <p>Sono qui per aiutarti, rispondere alle tue domande<br>
@@ -1027,7 +1045,7 @@ function bubble(text,role,attachmentNames=[]){
     row.className='assistant-row';
     const avatar=document.createElement('div');
     avatar.className='ai-avatar';
-    avatar.textContent='✦';
+    avatar.innerHTML='<img src="/lumos-icon.png" alt="">';
     avatar.title='Lumos IA';
 
     const message=document.createElement('div');
