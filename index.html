@@ -151,6 +151,17 @@ textarea::placeholder{color:#a1a1aa}
  .welcome{padding:5px}.welcome h2{font-size:26px}
  .chips{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:12px}
 }
+
+/* MENU CONTESTUALE CONVERSAZIONI */
+.chat-context-menu{position:fixed;z-index:1000;min-width:205px;padding:7px;border:1px solid #8d75e8aa;border-radius:13px;background:linear-gradient(145deg,#17183d,#090e27);box-shadow:0 12px 38px #000b,0 0 22px #754bff33;display:none}
+.chat-context-menu.open{display:block}
+.chat-context-menu button{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:0;border-radius:8px;background:transparent;color:#eeeaff;text-align:left;font-size:13px}
+.chat-context-menu button:hover{background:#ffffff12}
+.chat-context-menu button.delete{color:#ff91ad}
+.chat-context-menu button.delete:hover{background:#ff426018}
+.chat-rename-input{width:100%;padding:11px 12px;border:1px solid #9675ff;border-radius:9px;background:#090d27;color:white;outline:none}
+@media(max-width:850px){.chat-context-menu{min-width:220px}}
+
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -189,6 +200,10 @@ textarea::placeholder{color:#a1a1aa}
 </aside>
 
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+<div class="chat-context-menu" id="chatContextMenu" role="menu" aria-label="Opzioni conversazione">
+  <button type="button" id="renameChatAction" role="menuitem">✏️ <span>Rinomina conversazione</span></button>
+  <button type="button" id="deleteChatAction" class="delete" role="menuitem">🗑️ <span>Elimina conversazione</span></button>
+</div>
 
 <main class="main">
   <header class="topbar">
@@ -766,6 +781,111 @@ function renderList(){
     chatList.appendChild(button);
   });
 }
+
+/* MENU CONTESTUALE: CLIC DESTRO SU PC, PRESSIONE PROLUNGATA SU TELEFONO */
+const chatContextMenu=document.querySelector('#chatContextMenu');
+const renameChatAction=document.querySelector('#renameChatAction');
+const deleteChatAction=document.querySelector('#deleteChatAction');
+let contextChatId=null;
+let longPressTimer=null;
+let longPressTriggered=false;
+let touchStartPoint=null;
+
+function closeChatContextMenu(){
+  chatContextMenu.classList.remove('open');
+  contextChatId=null;
+}
+function openChatContextMenu(chatId,x,y){
+  if(!conversations.some(chat=>chat.id===chatId))return;
+  contextChatId=chatId;
+  chatContextMenu.classList.add('open');
+  const width=220,height=112;
+  chatContextMenu.style.left=Math.max(8,Math.min(x,window.innerWidth-width-8))+'px';
+  chatContextMenu.style.top=Math.max(8,Math.min(y,window.innerHeight-height-8))+'px';
+}
+function renameConversation(){
+  const chat=conversations.find(item=>item.id===contextChatId);
+  if(!chat)return;
+  const nextTitle=prompt('Inserisci il nuovo titolo della conversazione:',chat.title||'');
+  closeChatContextMenu();
+  if(nextTitle===null)return;
+  const cleanTitle=nextTitle.trim();
+  if(!cleanTitle){alert('Il titolo non può essere vuoto.');return}
+  chat.title=cleanTitle.slice(0,80);
+  persistChat(chat);
+  renderList();
+}
+async function deleteConversation(){
+  const chat=conversations.find(item=>item.id===contextChatId);
+  if(!chat)return;
+  const id=chat.id;
+  const confirmed=confirm('Vuoi eliminare definitivamente la conversazione "'+(chat.title||'Nuova conversazione')+'"?');
+  closeChatContextMenu();
+  if(!confirmed)return;
+  conversations=conversations.filter(item=>item.id!==id);
+  saveChats();
+  if(currentUser){
+    try{
+      const {error}=await supabaseClient.from('lumos_chats').delete().eq('id',id).eq('user_id',currentUser.id);
+      if(error)throw error;
+      setSyncStatus('✓ Conversazione eliminata e sincronizzata.');
+    }catch(error){
+      console.error('Errore eliminazione chat online:',error);
+      setSyncStatus('Conversazione rimossa da questo dispositivo, ma non dal cloud. Riprova.');
+      alert('La conversazione è stata rimossa localmente, ma non è stato possibile eliminarla dal cloud: '+error.message);
+    }
+  }else{
+    setSyncStatus('Conversazione eliminata da questo dispositivo.');
+  }
+  if(activeId===id){
+    activeId=null;
+    history=[];
+    welcomeScreen();
+  }
+  renderList();
+}
+renameChatAction.addEventListener('click',renameConversation);
+deleteChatAction.addEventListener('click',deleteConversation);
+document.addEventListener('click',event=>{
+  if(!chatContextMenu.contains(event.target))closeChatContextMenu();
+});
+document.addEventListener('keydown',event=>{if(event.key==='Escape')closeChatContextMenu()});
+chatList.addEventListener('contextmenu',event=>{
+  const item=event.target.closest('.chat-item');
+  if(!item)return;
+  event.preventDefault();
+  const index=Array.from(chatList.children).indexOf(item);
+  const chat=conversations.slice().reverse()[index];
+  if(chat)openChatContextMenu(chat.id,event.clientX,event.clientY);
+});
+chatList.addEventListener('touchstart',event=>{
+  const item=event.target.closest('.chat-item');
+  if(!item)return;
+  const touch=event.touches[0];
+  touchStartPoint={x:touch.clientX,y:touch.clientY};
+  longPressTriggered=false;
+  const index=Array.from(chatList.children).indexOf(item);
+  const chat=conversations.slice().reverse()[index];
+  if(!chat)return;
+  longPressTimer=setTimeout(()=>{
+    longPressTriggered=true;
+    openChatContextMenu(chat.id,touchStartPoint.x,touchStartPoint.y);
+    if(navigator.vibrate)navigator.vibrate(25);
+  },550);
+},{passive:true});
+chatList.addEventListener('touchmove',event=>{
+  if(!longPressTimer||!touchStartPoint)return;
+  const touch=event.touches[0];
+  if(Math.abs(touch.clientX-touchStartPoint.x)>12||Math.abs(touch.clientY-touchStartPoint.y)>12){
+    clearTimeout(longPressTimer);longPressTimer=null;
+  }
+},{passive:true});
+['touchend','touchcancel'].forEach(type=>chatList.addEventListener(type,()=>{
+  clearTimeout(longPressTimer);longPressTimer=null;
+},{passive:true}));
+chatList.addEventListener('click',event=>{
+  if(longPressTriggered){event.preventDefault();event.stopPropagation();longPressTriggered=false}
+},true);
 function welcomeScreen(){
   messages.innerHTML=`
     <div class="welcome">
