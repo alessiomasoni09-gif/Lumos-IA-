@@ -57,7 +57,7 @@ async function rpc(name, body) {
 }
 
 async function generateStructuredContent(prompt, format) {
-  const instructions = `Sei il direttore creativo e redattore di Lumos IA. Crea un contenuto completo, accurato e visivamente progettato per un file ${format.toUpperCase()}. Rispondi SOLO con JSON valido, senza markdown. Schema: {"title":"titolo","subtitle":"sottotitolo","sections":[{"heading":"titolo","paragraphs":["testo"],"bullets":["punto"],"imageQuery":"query precisa per una fotografia pertinente"}],"slides":[{"title":"titolo","subtitle":"sottotitolo breve","bullets":["punto"],"imageQuery":"query fotografica specifica","layout":"hero|split|editorial|data"}],"sheets":[{"name":"Foglio1","columns":["Colonna A"],"rows":[["dato"]]}]}. REGOLE: PDF e DOCX: crea sezioni ben sviluppate e indica imageQuery per ogni sezione importante. PPTX: crea 6-10 slide quando appropriato, ognuna con una sola idea centrale, massimo 3-4 punti brevi, imageQuery specifica e pertinente (non generica), layout alternati tra hero, split, editorial e data. La copertina è generata dal sistema. XLSX: crea fogli con dati coerenti, intestazioni chiare e righe utili; non aggiungere dati inventati come reali. Se l'utente chiede un modello vuoto, lascia le righe vuote. Non ripetere lo stesso contenuto. Lingua italiana salvo richiesta diversa.`;
+  const instructions = `Sei il direttore creativo e redattore di Lumos IA. Crea un contenuto completo, accurato e visivamente progettato per un file ${format.toUpperCase()}. Rispondi SOLO con JSON valido, senza markdown. Schema: {"title":"titolo","subtitle":"sottotitolo","sections":[{"heading":"titolo","paragraphs":["testo"],"bullets":["punto"],"imageQuery":"query precisa per una fotografia pertinente"}],"slides":[{"title":"titolo","subtitle":"sottotitolo breve","bullets":["punto"],"imageQuery":"query fotografica specifica","layout":"hero|split|editorial|data"}],"sheets":[{"name":"Foglio1","columns":["Colonna A"],"rows":[["dato"]]}]}. REGOLE: PDF e DOCX: crea sezioni ben sviluppate e indica imageQuery per ogni sezione importante. PPTX: crea 7-10 slide quando appropriato, ognuna con una sola idea centrale, massimo 3-4 punti brevi e imageQuery concreta e strettamente pertinente. Alterna davvero hero, split, editorial e data. Per le slide data inserisci numeri e confronti solo se verificabili dal contenuto; non inventare statistiche. La copertina è generata dal sistema e deve usare un visual coerente con il tema, mai una foto generica. XLSX: crea fogli con dati coerenti, intestazioni chiare e righe utili; non aggiungere dati inventati come reali. Se l'utente chiede un modello vuoto, lascia le righe vuote. Non ripetere lo stesso contenuto. Lingua italiana salvo richiesta diversa.`;
   const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
@@ -131,10 +131,12 @@ async function downloadVisual(rawUrl) {
 
 async function addVisuals(data, format) {
   if (format === "pptx") {
-    const targets = [{ query: `${data.title} ${data.subtitle || ""} cinematic editorial photography wide landscape` }, ...data.slides.slice(0, 10).map(item => ({ query: item.imageQuery || `${item.title} ${data.title} realistic editorial photography` }))];
+    // Evita una ricerca separata e generica per la copertina: spesso restituisce immagini fuori tema.
+    // La copertina riutilizza il primo visual specifico già associato a una slide del documento.
+    const targets = data.slides.slice(0, 10).map(item => ({ query: item.imageQuery || `${item.title} ${data.title} specific editorial photograph` }));
     const results = await Promise.all(targets.map(x => searchVisual(x.query)));
-    data.coverVisual = results[0] || null;
-    data.slides.forEach((item, index) => { item.visual = results[index + 1] || null; });
+    data.slides.forEach((item, index) => { item.visual = results[index] || null; });
+    data.coverVisual = results.find(Boolean) || null;
   } else if (format === "xlsx") {
     const targets = data.sheets.slice(0, 6).map(item => ({ query: item.imageQuery || `${item.name} ${data.title} professional data dashboard illustration` }));
     const results = await Promise.all(targets.map(x => searchVisual(x.query)));
@@ -202,41 +204,73 @@ async function makeDocx(data) {
 }
 
 async function makePptx(data) {
-  const pptx = new pptxgen(); pptx.layout = "LAYOUT_WIDE"; pptx.author = "Lumos IA"; pptx.subject = "Presentazione creata con Lumos IA"; pptx.title = textBuffer(data.title);
+  const pptx = new pptxgen();
+  pptx.layout = "LAYOUT_WIDE";
+  pptx.author = "Lumos IA";
+  pptx.subject = "Presentazione creata con Lumos IA";
+  pptx.title = textBuffer(data.title);
   pptx.theme = { headFontFace: "Aptos Display", bodyFontFace: "Aptos", lang: "it-IT" };
   const slides = data.slides.length ? data.slides : data.sections.map(s => ({ title: s.heading, bullets: [...(s.paragraphs || []), ...(s.bullets || [])], visual: s.visual }));
   const W = 13.333, H = 7.5;
-  const cover = pptx.addSlide(); cover.background = { color: "071225" };
-  if (data.coverVisual?.buffer) { try { cover.addImage({ data: `image/${data.coverVisual.extension};base64,${data.coverVisual.buffer.toString("base64")}`, x: 0, y: 0, w: W, h: H, transparency: 18 }); } catch {} }
-  cover.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: W, h: H, fill: { color: "061225", transparency: data.coverVisual ? 32 : 0 }, line: { color: "061225", transparency: 100 } });
-  cover.addText("LUMOS IA  /  CINEMATIC EDITION", { x: 0.75, y: 0.72, w: 7, h: 0.3, fontFace: "Aptos", fontSize: 10, charSpacing: 2, color: "B9C9E2", bold: true, margin: 0 });
-  cover.addText(textBuffer(data.title), { x: 0.75, y: 2.05, w: 11.6, h: 1.25, fontFace: "Aptos Display", fontSize: 34, bold: true, color: "FFFFFF", margin: 0, breakLine: false, fit: "shrink" });
-  if (data.subtitle) cover.addText(textBuffer(data.subtitle), { x: 0.8, y: 3.48, w: 10.8, h: 0.7, fontSize: 18, color: "D5E0EF", margin: 0 });
-  cover.addText("CREATO CON LUMOS IA", { x: 0.8, y: 6.82, w: 5, h: 0.25, fontSize: 9, charSpacing: 1.5, color: "A7B8D0", margin: 0 });
+  const cover = pptx.addSlide();
+  cover.background = { color: "071225" };
+  if (data.coverVisual?.buffer) {
+    try { cover.addImage({ data: `image/${data.coverVisual.extension};base64,${data.coverVisual.buffer.toString("base64")}`, x: 4.75, y: 0, w: 8.583, h: H, transparency: 5 }); } catch {}
+  }
+  cover.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 8.0, h: H, fill: { color: "061225", transparency: 3 }, line: { color: "061225", transparency: 100 } });
+  cover.addShape(pptx.ShapeType.rect, { x: 7.0, y: 0, w: 2.0, h: H, fill: { color: "061225", transparency: 48 }, line: { color: "061225", transparency: 100 } });
+  cover.addShape(pptx.ShapeType.line, { x: 0.82, y: 1.32, w: 0.72, h: 0, line: { color: "75D7D0", width: 2.4 } });
+  cover.addText("LUMOS IA   /   PRESENTAZIONE", { x: 0.82, y: 0.78, w: 6.5, h: 0.28, fontFace: "Aptos", fontSize: 9, charSpacing: 2.2, color: "B9C9E2", bold: true, margin: 0 });
+  cover.addText(textBuffer(data.title), { x: 0.82, y: 2.0, w: 7.0, h: 1.65, fontFace: "Aptos Display", fontSize: 35, bold: true, color: "FFFFFF", margin: 0, breakLine: false, fit: "shrink", valign: "mid" });
+  if (data.subtitle) cover.addText(textBuffer(data.subtitle), { x: 0.86, y: 3.88, w: 6.4, h: 0.88, fontSize: 17, color: "D5E0EF", margin: 0, breakLine: false, fit: "shrink" });
+  cover.addText("RICERCA  •  IDEE  •  CONOSCENZA", { x: 0.86, y: 6.75, w: 5.5, h: 0.22, fontSize: 8, charSpacing: 1.6, color: "A7B8D0", margin: 0 });
+
   for (const [index, item] of slides.slice(0, 24).entries()) {
-    const slide = pptx.addSlide(); slide.background = { color: "071225" };
+    const slide = pptx.addSlide();
+    slide.background = { color: "071225" };
     const image = item.visual?.buffer;
     const layout = ["hero", "split", "editorial", "data"].includes(item.layout) ? item.layout : ["hero", "split", "editorial", "data"][index % 4];
-    if (image) {
-      const img = { data: `image/${item.visual.extension};base64,${image.toString("base64")}` };
-      if (layout === "hero") {
-        slide.addImage({ ...img, x: 5.3, y: 0, w: 8.033, h: 7.5, transparency: 4 });
-        slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 7.2, h: 7.5, fill: { color: "071225", transparency: 4 }, line: { transparency: 100 } });
-        slide.addShape(pptx.ShapeType.rect, { x: 4.7, y: 0, w: 2.0, h: 7.5, fill: { color: "071225", transparency: 40 }, line: { transparency: 100 } });
-      } else if (layout === "editorial") {
-        slide.addImage({ ...img, x: 0, y: 0, w: 6.0, h: 7.5 });
-      } else {
-        slide.addImage({ ...img, x: 7.0, y: 0.75, w: 5.75, h: 5.95 });
-      }
+    const img = image ? { data: `image/${item.visual.extension};base64,${image.toString("base64")}` } : null;
+    let textX = 0.82, textW = 5.8, titleY = 1.36, bulletY = item.subtitle ? 3.15 : 2.72;
+
+    if (img && layout === "hero") {
+      slide.addImage({ ...img, x: 0, y: 0, w: W, h: H, transparency: 9 });
+      slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 8.2, h: H, fill: { color: "061225", transparency: 5 }, line: { transparency: 100 } });
+      slide.addShape(pptx.ShapeType.rect, { x: 7.1, y: 0, w: 2.1, h: H, fill: { color: "061225", transparency: 48 }, line: { transparency: 100 } });
+      textW = 6.15;
+    } else if (img && layout === "editorial") {
+      slide.addImage({ ...img, x: 0, y: 0, w: 6.1, h: H });
+      slide.addShape(pptx.ShapeType.rect, { x: 5.65, y: 0, w: 1.05, h: H, fill: { color: "071225", transparency: 25 }, line: { transparency: 100 } });
+      textX = 6.62; textW = 5.85; titleY = 1.4; bulletY = item.subtitle ? 3.2 : 2.8;
+    } else if (img && layout === "data") {
+      slide.addImage({ ...img, x: 8.15, y: 0.9, w: 4.55, h: 4.9, transparency: 3 });
+      textW = 6.75;
+    } else if (img) {
+      slide.addImage({ ...img, x: 7.05, y: 0.72, w: 5.55, h: 5.95 });
+      slide.addShape(pptx.ShapeType.roundRect, { x: 6.95, y: 0.62, w: 5.75, h: 6.15, rectRadius: 0.08, fill: { color: "071225", transparency: 100 }, line: { color: "334967", transparency: 35, width: 0.8 } });
+      textW = 5.8;
     }
-    const textX = layout === "editorial" && image ? 6.55 : 0.78;
-    const textW = layout === "editorial" && image ? 5.95 : (image && layout === "split" ? 5.7 : 6.2);
-    slide.addText(`CAPITOLO ${(index + 1).toString().padStart(2, "0")}`, { x: textX, y: 0.65, w: textW, h: 0.25, fontSize: 9, charSpacing: 2, color: "91A9CA", bold: true, margin: 0 });
-    slide.addText(textBuffer(item.title || "Punti principali"), { x: textX, y: 1.18, w: textW, h: 1.1, fontFace: "Aptos Display", fontSize: 27, bold: true, color: "FFFFFF", margin: 0, fit: "shrink" });
-    if (item.subtitle) slide.addText(textBuffer(item.subtitle), { x: textX, y: 2.32, w: textW, h: 0.55, fontSize: 13, color: "AFC2DC", margin: 0 });
-    const bullets = (item.bullets || []).slice(0, 5);
-    if (bullets.length) slide.addText(bullets.map(t => ({ text: textBuffer(t), options: { bullet: { indent: 13 }, hanging: 4, breakLine: true } })), { x: textX + 0.05, y: item.subtitle ? 3.05 : 2.72, w: textW - 0.15, h: 3.35, fontSize: 16, color: "E8EEF7", paraSpaceAfterPt: 17, breakLine: false, valign: "top", margin: 0.08, fit: "shrink" });
-    slide.addText(`LUMOS IA     /     ${String(index + 1).padStart(2, "0")}  —  ${String(slides.length).padStart(2, "0")}`, { x: 0.78, y: 7.08, w: 5.8, h: 0.18, fontSize: 8, charSpacing: 1, color: "8FA2BD", margin: 0 });
+
+    slide.addShape(pptx.ShapeType.line, { x: textX, y: 0.98, w: 0.58, h: 0, line: { color: "75D7D0", width: 2.2 } });
+    slide.addText(`CAPITOLO ${(index + 1).toString().padStart(2, "0")}`, { x: textX, y: 0.64, w: textW, h: 0.2, fontSize: 8, charSpacing: 2, color: "91A9CA", bold: true, margin: 0 });
+    slide.addText(textBuffer(item.title || "Punti principali"), { x: textX, y: titleY, w: textW, h: 1.12, fontFace: "Aptos Display", fontSize: 28, bold: true, color: "FFFFFF", margin: 0, fit: "shrink", valign: "mid" });
+    if (item.subtitle) slide.addText(textBuffer(item.subtitle), { x: textX + 0.02, y: 2.58, w: textW - 0.1, h: 0.48, fontSize: 12, color: "AFC2DC", margin: 0, fit: "shrink" });
+
+    const bullets = (item.bullets || []).slice(0, 4);
+    if (bullets.length && layout === "data") {
+      const cardW = 3.12, cardH = 1.22, gap = 0.2;
+      bullets.forEach((value, bi) => {
+        const col = bi % 2, row = Math.floor(bi / 2);
+        const x = textX + col * (cardW + gap), y = bulletY + row * (cardH + 0.22);
+        slide.addShape(pptx.ShapeType.roundRect, { x, y, w: cardW, h: cardH, rectRadius: 0.08, fill: { color: "12243D", transparency: 3 }, line: { color: "36516F", transparency: 35, width: 0.7 } });
+        slide.addShape(pptx.ShapeType.rect, { x: x + 0.16, y: y + 0.18, w: 0.045, h: 0.84, fill: { color: "75D7D0" }, line: { transparency: 100 } });
+        slide.addText(textBuffer(value), { x: x + 0.34, y: y + 0.16, w: cardW - 0.5, h: 0.88, fontSize: 12, color: "E8EEF7", margin: 0.02, valign: "mid", fit: "shrink", breakLine: false });
+      });
+    } else if (bullets.length) {
+      slide.addText(bullets.map(t => ({ text: textBuffer(t), options: { bullet: { indent: 13 }, hanging: 4, breakLine: true } })), { x: textX + 0.04, y: bulletY, w: textW - 0.12, h: 3.25, fontSize: 15, color: "E8EEF7", paraSpaceAfterPt: 16, breakLine: false, valign: "top", margin: 0.08, fit: "shrink" });
+    }
+    slide.addShape(pptx.ShapeType.line, { x: 0.72, y: 7.02, w: 11.9, h: 0, line: { color: "263957", transparency: 15, width: 0.7 } });
+    slide.addText(`LUMOS IA  /  IDEE IN CHIARO                                      ${String(index + 1).padStart(2, "0")}`, { x: 0.76, y: 7.12, w: 11.8, h: 0.16, fontFace: "Aptos", fontSize: 7, charSpacing: 1.1, color: "8195B3", margin: 0 });
   }
   return pptx.write({ outputType: "nodebuffer" });
 }
