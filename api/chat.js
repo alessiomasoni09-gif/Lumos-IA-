@@ -127,7 +127,7 @@ async function getUserPlan(userId) {
   const url =
     `${SUPABASE_URL}/rest/v1/lumos_subscriptions` +
     `?user_id=eq.${encodeURIComponent(userId)}` +
-    "&select=plan,status,current_period_end&limit=1";
+    "&select=plan,status&limit=1";
 
   const response = await fetch(url, {
     headers: {
@@ -147,8 +147,7 @@ async function getUserPlan(userId) {
   if (
     subscription &&
     ["active", "trialing"].includes(subscription.status) &&
-    ["base", "premium"].includes(subscription.plan) &&
-    (!subscription.current_period_end || new Date(subscription.current_period_end) > new Date())
+    ["base", "premium"].includes(subscription.plan)
   ) {
     return subscription.plan;
   }
@@ -360,17 +359,16 @@ export default async function handler(req, res) {
       ? body.attachments
       : [];
 
-    if (attachments.length > planSettings.attachments) {
+    // Gli ospiti possono usare la chat testuale, ma gli allegati richiedono Google Login.
+    if (attachments.length > 0 && !user) {
       return res.status(403).json({
-        error: `Il tuo piano ${plan.toUpperCase()} consente massimo ${planSettings.attachments} allegati per messaggio.`
+        error: "Accedi con Google per allegare file. La chat testuale resta disponibile senza accesso."
       });
     }
 
-    // Gli ospiti possono usare esclusivamente la chat testuale.
-    // Il controllo è lato server e non può essere aggirato modificando l'interfaccia.
-    if (attachments.length > 0 && !user) {
-      return res.status(401).json({
-        error: "Accedi con Google per allegare file. La chat di testo resta disponibile senza accesso."
+    if (attachments.length > planSettings.attachments) {
+      return res.status(403).json({
+        error: `Il tuo piano ${plan.toUpperCase()} consente massimo ${planSettings.attachments} allegati per messaggio.`
       });
     }
 
