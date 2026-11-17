@@ -129,7 +129,6 @@ button,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cu
 .creation-panel select,.creation-panel textarea{width:100%;border:1px solid #7162b477;border-radius:10px;background:#090d27;color:#fff;padding:10px;font:inherit;font-size:13px}
 .creation-panel select{margin-bottom:10px}
 .creation-panel textarea{min-height:85px;max-height:150px;resize:vertical}
-.creation-note{margin:8px 0 0;color:#bdb4ec;font-size:11px;line-height:1.5}
 .creation-actions{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
 .create-submit{padding:10px 16px;border:1px solid #b49aff;border-radius:10px;background:linear-gradient(110deg,#7139d7,#2859c5);color:#fff;font-weight:700;font-size:12px}
 .creation-status{color:#bdb8e5;font-size:11px;line-height:1.5}
@@ -267,8 +266,7 @@ textarea::placeholder{color:#a1a1aa}
         <option value="xlsx">Excel (.xlsx)</option>
       </select>
       <label for="creationPrompt">Che cosa vuoi creare?</label>
-      <textarea id="creationPrompt" maxlength="7000" placeholder="Esempio: crea una presentazione cinematografica di 8 slide sul sistema solare, con immagini pertinenti, curiosità, grafici e spiegazioni semplici..."></textarea>
-      <p class="creation-note">✦ Lumos IA cura automaticamente la grafica e cerca immagini pertinenti da integrare nel documento. Per PowerPoint usa lo stile Galaxy Cinematic con transizioni.</p>
+      <textarea id="creationPrompt" maxlength="7000" placeholder="Esempio: crea una presentazione di 8 slide sul sistema solare, con spiegazioni semplici e immagini da aggiungere in seguito..."></textarea>
       <div class="creation-actions">
         <button class="create-submit" id="createSubmit" type="button">✦ Genera e scarica</button>
         <span class="creation-status" id="creationStatus">Creazioni ogni 24 ore: FREE 3 · BASE 10 · PREMIUM 15. Accedi con Google.</span>
@@ -1515,11 +1513,9 @@ createSubmit.onclick=async()=>{
     setTimeout(()=>URL.revokeObjectURL(url),1500);
     const remaining=response.headers.get('X-Lumos-Creations-Remaining');
     const limit=response.headers.get('X-Lumos-Creations-Limit');
-    const imageCount=response.headers.get('X-Lumos-Images-Used')||'0';
-    const visualInfo=Number(imageCount)>0?' '+imageCount+' immagini pertinenti integrate.':' Grafica applicata; immagini esterne non disponibili per questa richiesta.';
-    creationStatus.textContent=(remaining==='illimitato'
+    creationStatus.textContent=remaining==='illimitato'
       ?'File creato e scaricato. Creazioni illimitate.'
-      :'File creato e scaricato! Hai ancora '+remaining+' creazioni su '+limit+' nelle ultime 24 ore.')+visualInfo;
+      :'File creato e scaricato! Hai ancora '+remaining+' creazioni su '+limit+' nelle ultime 24 ore.';
     delete creationStatus.dataset.busy;
     creationPrompt.value='';
   }catch(error){
