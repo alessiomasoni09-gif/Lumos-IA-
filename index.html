@@ -5,16 +5,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#050619">
-<link rel="manifest" href="/manifest.webmanifest">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Lumos IA">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lumos IA">
+<link rel="manifest" href="/manifest.webmanifest">
 <title>Lumos IA — Il tuo assistente intelligente</title>
 <meta name="description" content="Scopri Lumos IA, il tuo assistente intelligente: chiedi, crea, studia e trova nuove idee in un universo di possibilità.">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/lumos-icon.png">
-<link rel="apple-touch-icon" href="/lumos-icon.png">
+<link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Lumos IA">
 <meta property="og:title" content="Lumos IA — Il tuo assistente intelligente">
@@ -70,10 +70,6 @@ button,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cu
 .top-left{display:flex;align-items:center;gap:14px;min-width:0}
 .menu{width:41px;height:41px;flex-shrink:0;border-radius:12px;border:1px solid #6e65b966;background:#14183b;color:white;font-size:19px}
 .top-title{font-size:13px;color:#d8d7ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.top-actions{display:flex;align-items:center;gap:9px;flex-shrink:0}
-.install-app{display:none;align-items:center;gap:7px;padding:9px 13px;border-radius:30px;border:1px solid #a98cff88;background:linear-gradient(110deg,#7139d7aa,#2859c5aa);color:#fff;font-size:11px;font-weight:700;white-space:nowrap}
-.install-app.visible{display:flex}
-.install-app:hover{filter:brightness(1.15)}
 .status{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:30px;border:1px solid #36b78a55;background:#103c3444;color:#8fffd0;font-size:11px;flex-shrink:0}
 .dot{width:8px;height:8px;border-radius:50%;background:#3cffad;box-shadow:0 0 12px #3cffad;animation:pulse 1.8s infinite}
 @keyframes pulse{50%{opacity:.4}}
@@ -124,6 +120,18 @@ button,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cu
 .typing{z-index:2;padding:0 28px 12px;color:#bba0ff;font-size:12px}.typing span{animation:blink 1.2s infinite}
 @keyframes blink{50%{opacity:.25}}
 .input-area{z-index:2;padding:12px 24px 7px}
+.creation-toolbar{width:min(850px,100%);margin:0 auto 9px;display:flex;justify-content:flex-start;gap:8px}
+.create-toggle{padding:8px 14px;border:1px solid #9876ff99;border-radius:20px;background:linear-gradient(110deg,#5426a8,#174b9d);color:#fff;font-size:12px;font-weight:700;box-shadow:0 0 16px #754bff33}
+.create-toggle:hover{border-color:#c5aaff;transform:translateY(-1px)}
+.creation-panel{width:min(850px,100%);margin:0 auto 10px;padding:14px;border:1px solid #8e70e877;border-radius:16px;background:linear-gradient(145deg,#17183ddd,#090e27ee);box-shadow:0 8px 28px #0006}
+.creation-panel[hidden],.creation-toolbar[hidden]{display:none}
+.creation-panel label{display:block;margin:0 0 6px;color:#d9c5ff;font-size:11px;font-weight:700}
+.creation-panel select,.creation-panel textarea{width:100%;border:1px solid #7162b477;border-radius:10px;background:#090d27;color:#fff;padding:10px;font:inherit;font-size:13px}
+.creation-panel select{margin-bottom:10px}
+.creation-panel textarea{min-height:85px;max-height:150px;resize:vertical}
+.creation-actions{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.create-submit{padding:10px 16px;border:1px solid #b49aff;border-radius:10px;background:linear-gradient(110deg,#7139d7,#2859c5);color:#fff;font-weight:700;font-size:12px}
+.creation-status{color:#bdb8e5;font-size:11px;line-height:1.5}
 .input-box{width:min(850px,100%);margin:auto;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:28px;border:1px solid #ffffff30;background:#202123;box-shadow:0 4px 20px #0005;backdrop-filter:blur(20px);transition:border-color .2s,box-shadow .2s}
 .input-box:focus-within{border-color:#ffffff60;box-shadow:0 0 0 2px #ffffff0d,0 4px 25px #0005}
 textarea{flex:1;min-width:0;resize:none;min-height:42px;max-height:140px;background:transparent;border:0;outline:0;color:white;padding:11px 5px;font-size:14px}
@@ -239,13 +247,31 @@ textarea::placeholder{color:#a1a1aa}
       <button class="menu" id="menu" aria-label="Apri menu">☰</button>
       <div class="top-title"><img class="top-logo" src="/lumos-icon.png" alt="">Il tuo assistente intelligente</div>
     </div>
-    <div class="top-actions"><button class="install-app" id="installAppBtn" type="button">＋ Installa app</button><div class="status"><span class="dot"></span> Online</div></div>
+    <div class="status"><span class="dot"></span> Online</div>
   </header>
 
   <section id="messages" aria-live="polite"></section>
   <div class="typing" id="typing" hidden>✦ Lumos IA sta elaborando la risposta <span>...</span></div>
 
   <div class="input-area">
+    <div class="creation-toolbar" id="creationToolbar" hidden>
+      <button class="create-toggle" id="createToggle" type="button">✦ Crea un file</button>
+    </div>
+    <section class="creation-panel" id="creationPanel" hidden>
+      <label for="creationFormat">Formato del documento</label>
+      <select id="creationFormat">
+        <option value="pdf">PDF</option>
+        <option value="docx">Word (.docx)</option>
+        <option value="pptx">PowerPoint (.pptx)</option>
+        <option value="xlsx">Excel (.xlsx)</option>
+      </select>
+      <label for="creationPrompt">Che cosa vuoi creare?</label>
+      <textarea id="creationPrompt" maxlength="7000" placeholder="Esempio: crea una presentazione di 8 slide sul sistema solare, con spiegazioni semplici e immagini da aggiungere in seguito..."></textarea>
+      <div class="creation-actions">
+        <button class="create-submit" id="createSubmit" type="button">✦ Genera e scarica</button>
+        <span class="creation-status" id="creationStatus">Creazioni ogni 24 ore: FREE 3 · BASE 10 · PREMIUM 15. Accedi con Google.</span>
+      </div>
+    </section>
     <div class="attachments-preview" id="attachmentsPreview"></div>
     <form class="input-box" id="form">
       <input id="fileInput" type="file" multiple accept="image/*,.pdf,.txt,.docx,audio/*">
@@ -312,6 +338,13 @@ const planDescription=document.querySelector('#planDescription');
 const planStatus=document.querySelector('#planStatus');
 const baseBtn=document.querySelector('#baseBtn');
 const premiumBtn=document.querySelector('#premiumBtn');
+const creationToolbar=document.querySelector('#creationToolbar');
+const createToggle=document.querySelector('#createToggle');
+const creationPanel=document.querySelector('#creationPanel');
+const creationFormat=document.querySelector('#creationFormat');
+const creationPrompt=document.querySelector('#creationPrompt');
+const createSubmit=document.querySelector('#createSubmit');
+const creationStatus=document.querySelector('#creationStatus');
 
 let history=[];
 let conversations=[];
@@ -365,6 +398,7 @@ function isOwnerAccount(user){
 /* INTERFACCIA ABBONAMENTI: IDENTICA PER TUTTI */
 function updatePlanUI(){
   const plan=PLANS[currentPlan]||PLANS.free;
+  updateCreateUI();
 
   planName.textContent=plan.name;
   planDescription.textContent=plan.description;
@@ -373,9 +407,9 @@ function updatePlanUI(){
   premiumBtn.hidden=false;
 
   if(!currentUser){
-    planName.textContent='FREE';
-    planDescription.textContent=PLANS.free.description;
-    planStatus.textContent='Accedi con Google per acquistare un piano.';
+    planName.textContent='OSPITE';
+    planDescription.textContent='Chat di testo disponibile. Accedi con Google per attivare il piano FREE e usare allegati e creazione file.';
+    planStatus.textContent='Accedi con Google per attivare il piano gratuito.';
     baseBtn.disabled=false;
     premiumBtn.disabled=false;
     baseBtn.textContent='Passa a BASE · 2,99 €/mese';
@@ -401,6 +435,28 @@ function updatePlanUI(){
   premiumBtn.textContent=currentPlan==='premium'
     ?'✓ Piano PREMIUM attivo'
     :'Passa a PREMIUM · 4,99 €/mese';
+}
+
+function updateCreateUI(){
+  const signedIn=!!currentUser;
+  creationToolbar.hidden=!signedIn;
+  if(!signedIn)creationPanel.hidden=true;
+  attachBtn.hidden=!signedIn;
+  recordBtn.hidden=!signedIn;
+  if(!signedIn){
+    pendingAttachments=[];
+    attachmentsPreview.innerHTML='';
+    inputHint.textContent='Accedi con Google per allegare file e registrare audio. La chat di testo resta disponibile.';
+    return;
+  }
+  inputHint.textContent=pendingAttachments.length
+    ?pendingAttachments.length+' allegato/i pronti per l’invio'
+    :'＋ Allega file · 🎙️ Dettatura · 🎧 Registra un audio';
+  if(creationStatus&&!creationStatus.dataset.busy){
+    creationStatus.textContent=isOwner
+      ?'Account proprietario: creazioni illimitate.'
+      :'Limite nelle ultime 24 ore: FREE 3 · BASE 10 · PREMIUM 15. Piano attuale: '+currentPlan.toUpperCase()+'.';
+  }
 }
 
 /* CARICAMENTO PIANO DA SUPABASE */
@@ -1158,11 +1214,14 @@ function renderAttachments(){
     chip.append(label,remove);
     attachmentsPreview.appendChild(chip);
   });
-  inputHint.textContent=pendingAttachments.length
-    ?pendingAttachments.length+' allegato/i pronti per l’invio · limite '+(isOwner?5:(PLANS[currentPlan]||PLANS.free).attachments)
-    :'＋ Allega file · 🎙️ Dettatura · 🎧 Registra un audio';
+  inputHint.textContent=!currentUser
+    ?'Accedi con Google per allegare file e registrare audio. La chat di testo resta disponibile.'
+    :(pendingAttachments.length
+      ?pendingAttachments.length+' allegato/i pronti per l’invio · limite '+(isOwner?5:(PLANS[currentPlan]||PLANS.free).attachments)
+      :'＋ Allega file · 🎙️ Dettatura · 🎧 Registra un audio');
 }
 async function addFiles(files){
+  if(!currentUser){alert('Accedi con Google per allegare file. La chat di testo è disponibile anche senza accesso.');fileInput.value='';return;}
   const attachmentLimit=isOwner?5:(PLANS[currentPlan]||PLANS.free).attachments;
 
   for(const file of Array.from(files)){
@@ -1262,6 +1321,7 @@ dictationBtn.onclick=startDictation;
 
 /* REGISTRAZIONE AUDIO */
 async function startRecording(){
+  if(!currentUser){alert('Accedi con Google per registrare e allegare audio.');return;}
   if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){
     alert('La registrazione audio non è supportata da questo browser.');
     return;
@@ -1306,7 +1366,7 @@ async function startRecording(){
 }
 function stopRecording(){if(mediaRecorder&&mediaRecorder.state!=='inactive')mediaRecorder.stop();isRecording=false}
 function resetRecordButton(){isRecording=false;recordBtn.classList.remove('recording');recordBtn.textContent='🎧';renderAttachments()}
-recordBtn.onclick=()=>{if(isRecording)stopRecording();else startRecording()};
+recordBtn.onclick=()=>{if(!currentUser){alert('Accedi con Google per registrare audio.');return;}if(isRecording)stopRecording();else startRecording()};
 
 /* INVIO MESSAGGI */
 async function submit(text){
@@ -1316,6 +1376,7 @@ async function submit(text){
   if(!activeId)activeId=Date.now().toString();
 
   const outgoingAttachments=pendingAttachments.slice();
+  if(outgoingAttachments.length&&!currentUser){alert('Accedi con Google per inviare allegati.');return;}
   const attachmentLimit=isOwner?5:(PLANS[currentPlan]||PLANS.free).attachments;
   if(outgoingAttachments.length>attachmentLimit){
     alert('Il tuo piano consente massimo '+attachmentLimit+' allegato/i per messaggio.');
@@ -1409,6 +1470,65 @@ async function submit(text){
   }
 }
 
+/* CREAZIONE FILE PDF / WORD / POWERPOINT / EXCEL */
+createToggle.onclick=()=>{
+  if(!currentUser){alert('Accedi con Google per creare file.');return;}
+  creationPanel.hidden=!creationPanel.hidden;
+  if(!creationPanel.hidden)creationPrompt.focus();
+};
+createSubmit.onclick=async()=>{
+  if(!currentUser){alert('Accedi con Google per creare file.');return;}
+  const prompt=creationPrompt.value.trim();
+  if(prompt.length<5){alert('Descrivi cosa vuoi creare (almeno 5 caratteri).');creationPrompt.focus();return;}
+  if(createSubmit.disabled)return;
+  createSubmit.disabled=true;
+  createSubmit.textContent='⏳ Creazione in corso...';
+  creationStatus.dataset.busy='1';
+  creationStatus.textContent='Lumos IA sta preparando il file. Attendi qualche istante...';
+  let quotaResetText='';
+  try{
+    const {data:sessionData,error:sessionError}=await supabaseClient.auth.getSession();
+    if(sessionError)throw sessionError;
+    const accessToken=sessionData.session?.access_token;
+    if(!accessToken)throw new Error('Sessione scaduta. Accedi nuovamente con Google.');
+    const response=await fetch('/api/create-document',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+accessToken},
+      body:JSON.stringify({format:creationFormat.value,prompt})
+    });
+    if(!response.ok){
+      const errorData=await response.json().catch(()=>({}));
+      if(errorData.quota?.reset_at){
+        quotaResetText='Nuova creazione disponibile dal '+new Date(errorData.quota.reset_at).toLocaleString('it-IT')+'.';
+      }
+      throw new Error(errorData.error||'Non è stato possibile creare il file.');
+    }
+    const blob=await response.blob();
+    const disposition=response.headers.get('Content-Disposition')||'';
+    const filenameMatch=disposition.match(/filename="?([^";]+)"?/i);
+    const filename=filenameMatch?.[1]||('Lumos-Documento.'+creationFormat.value);
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    const remaining=response.headers.get('X-Lumos-Creations-Remaining');
+    const limit=response.headers.get('X-Lumos-Creations-Limit');
+    creationStatus.textContent=remaining==='illimitato'
+      ?'File creato e scaricato. Creazioni illimitate.'
+      :'File creato e scaricato! Hai ancora '+remaining+' creazioni su '+limit+' nelle ultime 24 ore.';
+    delete creationStatus.dataset.busy;
+    creationPrompt.value='';
+  }catch(error){
+    console.error('Creazione file:',error);
+    creationStatus.textContent=error.message+(quotaResetText?' '+quotaResetText:'');
+    delete creationStatus.dataset.busy;
+    alert(error.message);
+  }finally{
+    createSubmit.disabled=false;
+    createSubmit.textContent='✦ Genera e scarica';
+  }
+};
+
 /* EVENTI INTERFACCIA */
 document.querySelector('#newChat').onclick=()=>{
   if(window.innerWidth<=850)closeMobileMenu();
@@ -1455,39 +1575,12 @@ initializeAuth();
 </script>
 
 <script>
-/* FUNZIONI PWA: installazione e cache dell'interfaccia */
-let lumosInstallPrompt=null;
-const installAppBtn=document.getElementById('installAppBtn');
-const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-const isStandalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
-
-if(installAppBtn&&!isStandalone){
-  if(isIOS){
-    installAppBtn.classList.add('visible');
-    installAppBtn.addEventListener('click',()=>alert('Per installare Lumos IA su iPhone/iPad:\n\n1. Apri questo sito con Safari.\n2. Tocca il pulsante Condividi.\n3. Seleziona “Aggiungi alla schermata Home”.\n4. Tocca “Aggiungi”.'));
-  }else{
-    window.addEventListener('beforeinstallprompt',event=>{
-      event.preventDefault();
-      lumosInstallPrompt=event;
-      installAppBtn.classList.add('visible');
+// Registrazione PWA: non modifica autenticazione o funzioni della chat.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(error => {
+      console.error('Lumos IA: registrazione service worker non riuscita:', error);
     });
-    installAppBtn.addEventListener('click',async()=>{
-      if(!lumosInstallPrompt){
-        alert('Per installare Lumos IA, apri il menu del browser e scegli “Installa Lumos IA” oppure “Installa app”.');
-        return;
-      }
-      lumosInstallPrompt.prompt();
-      await lumosInstallPrompt.userChoice;
-      lumosInstallPrompt=null;
-      installAppBtn.classList.remove('visible');
-    });
-    window.addEventListener('appinstalled',()=>installAppBtn.classList.remove('visible'));
-  }
-}
-
-if('serviceWorker' in navigator && location.protocol==='https:'){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(error=>console.warn('Lumos IA: registrazione PWA non riuscita',error));
   });
 }
 </script>
