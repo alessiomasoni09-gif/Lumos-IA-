@@ -1,18 +1,38 @@
+
 {
   "id": "/",
-  "name": "Lumos IA — Il tuo assistente intelligente",
+  "name": "Lumos IA - Il tuo assistente intelligente",
   "short_name": "Lumos IA",
-  "description": "Il tuo assistente intelligente: chiedi, crea, studia e trova nuove idee.",
-  "lang": "it-IT",
+  "description": "Il tuo assistente intelligente sempre con te.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "any",
+  "orientation": "portrait-primary",
   "background_color": "#050619",
   "theme_color": "#050619",
+  "categories": [
+    "education",
+    "productivity",
+    "utilities"
+  ],
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
