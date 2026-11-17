@@ -100,10 +100,20 @@ async function searchVisual(query) {
   return null;
 }
 
+function isRejectedImageHost(hostname) {
+  const host = String(hostname || "").toLowerCase().replace(/^www\./, "");
+  const blocked = [
+    "shutterstock.com", "istockphoto.com", "gettyimages.com", "adobestock.com",
+    "stock.adobe.com", "dreamstime.com", "depositphotos.com", "alamy.com",
+    "123rf.com", "pond5.com", "envato.com", "elements.envato.com"
+  ];
+  return blocked.some(domain => host === domain || host.endsWith(`.${domain}`));
+}
+
 async function downloadVisual(rawUrl) {
   try {
     const url = new URL(String(rawUrl || ""));
-    if (!["https:", "http:"].includes(url.protocol) || !url.hostname || ["localhost", "127.0.0.1", "0.0.0.0"].includes(url.hostname)) return null;
+    if (!["https:", "http:"].includes(url.protocol) || !url.hostname || ["localhost", "127.0.0.1", "0.0.0.0"].includes(url.hostname) || isRejectedImageHost(url.hostname)) return null;
     const response = await fetch(url, { signal: AbortSignal.timeout(9000), redirect: "follow", headers: { "User-Agent": "LumosIA/1.0" } });
     if (!response.ok) return null;
     const type = (response.headers.get("content-type") || "").split(";")[0].toLowerCase();
