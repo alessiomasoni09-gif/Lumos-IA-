@@ -359,13 +359,6 @@ export default async function handler(req, res) {
       ? body.attachments
       : [];
 
-    // Gli ospiti possono usare la chat testuale, ma gli allegati richiedono Google Login.
-    if (attachments.length > 0 && !user) {
-      return res.status(403).json({
-        error: "Accedi con Google per allegare file. La chat testuale resta disponibile senza accesso."
-      });
-    }
-
     if (attachments.length > planSettings.attachments) {
       return res.status(403).json({
         error: `Il tuo piano ${plan.toUpperCase()} consente massimo ${planSettings.attachments} allegati per messaggio.`
