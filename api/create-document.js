@@ -56,28 +56,89 @@ async function rpc(name, body) {
   return response.json();
 }
 
-async function generateStructuredContent(prompt, format) {
-  const instructions = `Sei il direttore creativo e redattore di Lumos IA. Crea un contenuto completo, accurato e visivamente progettato per un file ${format.toUpperCase()}. Rispondi SOLO con JSON valido, senza markdown. Schema: {"title":"titolo","subtitle":"sottotitolo","sections":[{"heading":"titolo","paragraphs":["testo"],"bullets":["punto"],"imageQuery":"query precisa per una fotografia pertinente"}],"slides":[{"title":"titolo","subtitle":"sottotitolo breve","bullets":["punto"],"imageQuery":"query fotografica specifica","layout":"hero|split|editorial|data"}],"sheets":[{"name":"Foglio1","columns":["Colonna A"],"rows":[["dato"]]}]}. REGOLE: PDF e DOCX: crea sezioni ben sviluppate e indica imageQuery per ogni sezione importante. PPTX: crea 7-10 slide quando appropriato, ognuna con una sola idea centrale, massimo 3-4 punti brevi e imageQuery concreta e strettamente pertinente. Alterna davvero hero, split, editorial e data. Per le slide data inserisci numeri e confronti solo se verificabili dal contenuto; non inventare statistiche. La copertina è generata dal sistema e deve usare un visual coerente con il tema, mai una foto generica. XLSX: crea fogli con dati coerenti, intestazioni chiare e righe utili; non aggiungere dati inventati come reali. Se l'utente chiede un modello vuoto, lascia le righe vuote. Non ripetere lo stesso contenuto. Lingua italiana salvo richiesta diversa.`;
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: process.env.GROQ_MODEL || "openai/gpt-oss-20b",
-      messages: [{ role: "system", content: instructions }, { role: "user", content: prompt.slice(0, 7000) }],
-      temperature: 0.5, max_completion_tokens: 6500, stream: false
-    })
-  });
-  const result = await response.json().catch(() => ({}));
-  if (!response.ok) { console.error("Groq document generation:", response.status, result); throw new Error("L'IA non è riuscita a preparare il documento. Riprova tra poco."); }
-  let raw = (result.choices?.[0]?.message?.content || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
-  const start = raw.indexOf("{"); const end = raw.lastIndexOf("}");
-  if (start < 0 || end <= start) throw new Error("Il contenuto generato non è valido. Riprova con una richiesta più semplice.");
-  const data = JSON.parse(raw.slice(start, end + 1));
+function extractJsonObject(raw) {
+  const text = String(raw || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  const start = text.indexOf("{");
+  if (start < 0) throw new Error("L'IA non ha restituito un oggetto JSON.");
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < text.length; i++) {
+    const char = text[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') inString = true;
+    else if (char === "{") depth++;
+    else if (char === "}") {
+      depth--;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
+  }
+  throw new Error("Il JSON generato è incompleto o troncato.");
+}
+
+function normalizeGeneratedData(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    throw new Error("La risposta dell'IA non contiene dati validi.");
+  }
   if (!data.title) data.title = "Documento Lumos";
   if (!Array.isArray(data.sections)) data.sections = [];
   if (!Array.isArray(data.slides)) data.slides = [];
   if (!Array.isArray(data.sheets)) data.sheets = [];
   return data;
+}
+
+async function requestGroqJson(messages, maxTokens = 7000) {
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: process.env.GROQ_MODEL || "openai/gpt-oss-20b",
+      messages,
+      temperature: 0.3,
+      max_completion_tokens: maxTokens,
+      response_format: { type: "json_object" },
+      stream: false
+    })
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    console.error("Groq document generation:", response.status, result);
+    throw new Error("L'IA non è riuscita a preparare il documento. Riprova tra poco.");
+  }
+  const content = result.choices?.[0]?.message?.content;
+  if (!content || typeof content !== "string") throw new Error("L'IA ha restituito una risposta vuota. Riprova.");
+  return content;
+}
+
+async function generateStructuredContent(prompt, format) {
+  const instructions = `Sei il direttore creativo e redattore di Lumos IA. Crea un contenuto completo, accurato e visivamente progettato per un file ${format.toUpperCase()}. Rispondi esclusivamente con un singolo oggetto JSON valido. Non usare markdown, blocchi di codice o testo prima/dopo il JSON. Usa sempre doppi apici per chiavi e stringhe, fai escape di virgolette e barre inverse nei testi, non inserire virgole finali e completa tutte le parentesi. Schema: {"title":"titolo","subtitle":"sottotitolo","sections":[{"heading":"titolo","paragraphs":["testo"],"bullets":["punto"],"imageQuery":"query precisa per una fotografia pertinente"}],"slides":[{"title":"titolo","subtitle":"sottotitolo breve","bullets":["punto"],"imageQuery":"query fotografica specifica","layout":"hero|split|editorial|data"}],"sheets":[{"name":"Foglio1","columns":["Colonna A"],"rows":[["dato"]]}]}. REGOLE: PDF e DOCX: crea sezioni ben sviluppate e indica imageQuery per ogni sezione importante. PPTX: crea 7-10 slide quando appropriato, ognuna con una sola idea centrale, massimo 3-4 punti brevi e imageQuery concreta e strettamente pertinente. Alterna davvero hero, split, editorial e data. Per le slide data inserisci numeri e confronti solo se verificabili dal contenuto; non inventare statistiche. La copertina è generata dal sistema e deve usare un visual coerente con il tema, mai una foto generica. XLSX: crea fogli con dati coerenti, intestazioni chiare e righe utili; non aggiungere dati inventati come reali. Se l'utente chiede un modello vuoto, lascia le righe vuote. Non ripetere lo stesso contenuto. Lingua italiana salvo richiesta diversa.`;
+  const messages = [
+    { role: "system", content: instructions },
+    { role: "user", content: prompt.slice(0, 7000) }
+  ];
+
+  const raw = await requestGroqJson(messages);
+  try {
+    return normalizeGeneratedData(JSON.parse(extractJsonObject(raw)));
+  } catch (firstError) {
+    console.warn("JSON generato non valido; avvio correzione automatica:", firstError.message);
+    const repaired = await requestGroqJson([
+      { role: "system", content: "Sei un validatore e riparatore JSON. Restituisci un unico oggetto JSON valido, completo e senza markdown. Correggi esclusivamente la sintassi, conserva tutti i contenuti e rispetta lo schema presente nei dati. Non aggiungere commenti." },
+      { role: "user", content: `Correggi la sintassi di questo JSON incompleto o non valido e restituisci l'oggetto completo:\n${raw.slice(0, 24000)}` }
+    ], 7000);
+    try {
+      return normalizeGeneratedData(JSON.parse(extractJsonObject(repaired)));
+    } catch (secondError) {
+      console.error("Correzione JSON fallita:", secondError.message);
+      throw new Error("La risposta dell'IA è arrivata in un formato non valido anche dopo il recupero automatico. Riprova: non è necessario modificare il prompt.");
+    }
+  }
 }
 
 async function searchVisual(query) {
@@ -131,8 +192,6 @@ async function downloadVisual(rawUrl) {
 
 async function addVisuals(data, format) {
   if (format === "pptx") {
-    // Evita una ricerca separata e generica per la copertina: spesso restituisce immagini fuori tema.
-    // La copertina riutilizza il primo visual specifico già associato a una slide del documento.
     const targets = data.slides.slice(0, 10).map(item => ({ query: item.imageQuery || `${item.title} ${data.title} specific editorial photograph` }));
     const results = await Promise.all(targets.map(x => searchVisual(x.query)));
     data.slides.forEach((item, index) => { item.visual = results[index] || null; });
@@ -151,31 +210,31 @@ async function addVisuals(data, format) {
 }
 
 function textBuffer(value) { return String(value ?? ""); }
-function flattenSections(data) {
-  const lines = [data.title, data.subtitle || ""];
-  for (const section of data.sections) {
-    lines.push("", section.heading || "");
-    for (const p of section.paragraphs || []) lines.push(String(p));
-    for (const b of section.bullets || []) lines.push("• " + String(b));
-  }
-  return lines.join("\n");
-}
 
 async function makePdf(data) {
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({ size: "A4", margin: 48, bufferPages: true, info: { Title: data.title, Author: "Lumos IA" } });
-      const chunks = []; doc.on("data", c => chunks.push(c)); doc.on("end", () => resolve(Buffer.concat(chunks))); doc.on("error", reject);
+      const chunks = [];
+      doc.on("data", c => chunks.push(c));
+      doc.on("end", () => resolve(Buffer.concat(chunks)));
+      doc.on("error", reject);
+
       doc.rect(0, 0, 595.28, 842).fill("#081225");
-      if (data.coverVisual?.buffer) { try { doc.image(data.coverVisual.buffer, 0, 0, { width: 595.28, height: 330, cover: [595.28, 330] }); } catch {} }
+      if (data.coverVisual?.buffer) {
+        try { doc.image(data.coverVisual.buffer, 0, 0, { width: 595.28, height: 330, cover: [595.28, 330] }); } catch {}
+      }
       doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(29).text(textBuffer(data.title), 48, 365, { width: 495 });
       if (data.subtitle) doc.moveDown(0.7).font("Helvetica").fontSize(13).fillColor("#B8C7DD").text(textBuffer(data.subtitle), { width: 490 });
       doc.fontSize(8).fillColor("#91A7C5").text("LUMOS IA  /  DOCUMENTO EDITION", 48, 790);
+
       for (const [index, section] of data.sections.entries()) {
         doc.addPage({ margin: 48 });
         doc.fillColor("#5B75A5").font("Helvetica-Bold").fontSize(9).text(`CAPITOLO ${(index + 1).toString().padStart(2, "0")}`, { characterSpacing: 1.5 });
         doc.moveDown(0.35).fillColor("#13233D").fontSize(22).text(textBuffer(section.heading || "Approfondimento"), { width: 495 });
-        if (section.visual?.buffer) { try { doc.moveDown(0.8).image(section.visual.buffer, 48, doc.y, { fit: [499, 245], align: "center" }); doc.moveDown(0.8); } catch {} }
+        if (section.visual?.buffer) {
+          try { doc.moveDown(0.8).image(section.visual.buffer, 48, doc.y, { fit: [499, 245], align: "center" }); doc.moveDown(0.8); } catch {}
+        }
         for (const p of section.paragraphs || []) doc.moveDown(0.45).font("Helvetica").fontSize(10.5).fillColor("#344258").text(textBuffer(p), { lineGap: 4, width: 495 });
         for (const b of section.bullets || []) doc.moveDown(0.25).font("Helvetica").fontSize(10.5).fillColor("#24344C").text("•  " + textBuffer(b), { indent: 12, lineGap: 3, width: 480 });
         doc.fontSize(8).fillColor("#8291A8").text(`LUMOS IA     /     ${index + 1}`, 48, 800, { lineBreak: false });
@@ -189,7 +248,9 @@ async function makePdf(data) {
 async function makeDocx(data) {
   const children = [new Paragraph({ text: textBuffer(data.title), heading: HeadingLevel.TITLE, spacing: { after: 180 } })];
   if (data.subtitle) children.push(new Paragraph({ children: [new TextRun({ text: textBuffer(data.subtitle), italics: true, color: "64748B", size: 24 })], spacing: { after: 300 } }));
-  if (data.coverVisual?.buffer) { try { children.push(new Paragraph({ alignment: AlignmentType.CENTER, children: [new ImageRun({ data: data.coverVisual.buffer, transformation: { width: 520, height: 280 }, type: data.coverVisual.extension })], spacing: { after: 260 } })); } catch {} }
+  if (data.coverVisual?.buffer) {
+    try { children.push(new Paragraph({ alignment: AlignmentType.CENTER, children: [new ImageRun({ data: data.coverVisual.buffer, transformation: { width: 520, height: 280 }, type: data.coverVisual.extension })], spacing: { after: 260 } })); } catch {}
+  }
   for (const section of data.sections) {
     if (section.heading) children.push(new Paragraph({ text: textBuffer(section.heading), heading: HeadingLevel.HEADING_1, spacing: { before: 340, after: 140 }, keepNext: true }));
     if (section.visual?.buffer) {
@@ -210,13 +271,21 @@ async function makePptx(data) {
   pptx.subject = "Presentazione creata con Lumos IA";
   pptx.title = textBuffer(data.title);
   pptx.theme = { headFontFace: "Aptos Display", bodyFontFace: "Aptos", lang: "it-IT" };
-  const slides = data.slides.length ? data.slides : data.sections.map(s => ({ title: s.heading, bullets: [...(s.paragraphs || []), ...(s.bullets || [])], visual: s.visual }));
+
+  const slides = data.slides.length ? data.slides : data.sections.map(s => ({
+    title: s.heading,
+    bullets: [...(s.paragraphs || []), ...(s.bullets || [])],
+    visual: s.visual
+  }));
+
   const W = 13.333, H = 7.5;
   const cover = pptx.addSlide();
   cover.background = { color: "071225" };
+
   if (data.coverVisual?.buffer) {
     try { cover.addImage({ data: `image/${data.coverVisual.extension};base64,${data.coverVisual.buffer.toString("base64")}`, x: 4.75, y: 0, w: 8.583, h: H, transparency: 5 }); } catch {}
   }
+
   cover.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 8.0, h: H, fill: { color: "061225", transparency: 3 }, line: { color: "061225", transparency: 100 } });
   cover.addShape(pptx.ShapeType.rect, { x: 7.0, y: 0, w: 2.0, h: H, fill: { color: "061225", transparency: 48 }, line: { color: "061225", transparency: 100 } });
   cover.addShape(pptx.ShapeType.line, { x: 0.82, y: 1.32, w: 0.72, h: 0, line: { color: "75D7D0", width: 2.4 } });
@@ -269,6 +338,7 @@ async function makePptx(data) {
     } else if (bullets.length) {
       slide.addText(bullets.map(t => ({ text: textBuffer(t), options: { bullet: { indent: 13 }, hanging: 4, breakLine: true } })), { x: textX + 0.04, y: bulletY, w: textW - 0.12, h: 3.25, fontSize: 15, color: "E8EEF7", paraSpaceAfterPt: 16, breakLine: false, valign: "top", margin: 0.08, fit: "shrink" });
     }
+
     slide.addShape(pptx.ShapeType.line, { x: 0.72, y: 7.02, w: 11.9, h: 0, line: { color: "263957", transparency: 15, width: 0.7 } });
     slide.addText(`LUMOS IA  /  IDEE IN CHIARO                                      ${String(index + 1).padStart(2, "0")}`, { x: 0.76, y: 7.12, w: 11.8, h: 0.16, fontFace: "Aptos", fontSize: 7, charSpacing: 1.1, color: "8195B3", margin: 0 });
   }
@@ -279,7 +349,13 @@ async function makeXlsx(data) {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Lumos IA";
   workbook.created = new Date();
-  const sheets = data.sheets.length ? data.sheets : [{ name: "Dati", columns: ["Contenuto"], rows: data.sections.flatMap(s => [[s.heading || ""], ...(s.paragraphs || []).map(p => [p]), ...(s.bullets || []).map(b => [b])]) }];
+
+  const sheets = data.sheets.length ? data.sheets : [{
+    name: "Dati",
+    columns: ["Contenuto"],
+    rows: data.sections.flatMap(s => [[s.heading || ""], ...(s.paragraphs || []).map(p => [p]), ...(s.bullets || []).map(b => [b])])
+  }];
+
   for (const [index, source] of sheets.slice(0, 10).entries()) {
     const name = String(source.name || `Foglio${index + 1}`).replace(/[\\/*?:\[\]]/g, " ").slice(0, 31) || `Foglio${index + 1}`;
     const sheet = workbook.addWorksheet(name);
@@ -288,11 +364,20 @@ async function makeXlsx(data) {
     sheet.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
     sheet.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF49318A" } };
     sheet.views = [{ state: "frozen", ySplit: 1 }];
-    for (const row of (source.rows || []).slice(0, 500)) sheet.addRow(Array.isArray(row) ? row.slice(0, 30).map(v => (typeof v === "number" ? v : textBuffer(v))) : [textBuffer(row)]);
+
+    for (const row of (source.rows || []).slice(0, 500)) {
+      sheet.addRow(Array.isArray(row) ? row.slice(0, 30).map(v => (typeof v === "number" ? v : textBuffer(v))) : [textBuffer(row)]);
+    }
+
     sheet.columns.forEach((col, i) => { col.width = Math.min(42, Math.max(14, String(columns[i] || "").length + 5)); });
     sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: columns.length } };
     sheet.getRow(1).height = 26;
-    sheet.eachRow((row, rowNumber) => { if (rowNumber > 1 && rowNumber % 2 === 0) row.eachCell(cell => { cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5FA" } }; }); });
+    sheet.eachRow((row, rowNumber) => {
+      if (rowNumber > 1 && rowNumber % 2 === 0) {
+        row.eachCell(cell => { cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5FA" } }; });
+      }
+    });
+
     if (source.visual?.buffer) {
       const imageId = workbook.addImage({ buffer: source.visual.buffer, extension: source.visual.extension });
       sheet.addImage(imageId, { tl: { col: 0, row: (source.rows || []).length + 3 }, ext: { width: 420, height: 220 } });
@@ -302,18 +387,26 @@ async function makeXlsx(data) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") { res.setHeader("Allow", "POST"); return res.status(405).json({ error: "Metodo non consentito." }); }
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.GROQ_API_KEY) return res.status(500).json({ error: "Configurazione del server incompleta." });
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    return res.status(405).json({ error: "Metodo non consentito." });
+  }
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.GROQ_API_KEY) {
+    return res.status(500).json({ error: "Configurazione del server incompleta." });
+  }
 
   let reservationId = null;
   let userId = null;
+
   try {
     const user = await authenticatedUser(req);
     if (!user) return res.status(401).json({ error: "Accedi con Google per creare documenti." });
+
     userId = user.id;
     const body = req.body || {};
     const format = String(body.format || "").toLowerCase();
     const prompt = String(body.prompt || "").trim();
+
     if (!FORMATS.has(format)) return res.status(400).json({ error: "Formato non supportato. Scegli PDF, Word, PowerPoint o Excel." });
     if (prompt.length < 5) return res.status(400).json({ error: "Scrivi una richiesta più dettagliata (almeno 5 caratteri)." });
     if (prompt.length > 7000) return res.status(400).json({ error: "La richiesta è troppo lunga. Massimo 7.000 caratteri." });
@@ -321,8 +414,13 @@ export default async function handler(req, res) {
     const owner = OWNER_EMAILS.includes(String(user.email || "").toLowerCase().trim());
     const plan = owner ? "premium" : await getPlan(user.id);
     let quota = { used: 0, limit: "illimitato", remaining: "illimitato", reset_at: null };
+
     if (!owner) {
-      const reserved = await rpc("reserve_lumos_creation", { p_user_id: user.id, p_plan: plan, p_request_id: crypto.randomUUID() });
+      const reserved = await rpc("reserve_lumos_creation", {
+        p_user_id: user.id,
+        p_plan: plan,
+        p_request_id: crypto.randomUUID()
+      });
       if (!reserved?.allowed) {
         return res.status(429).json({ error: `Hai raggiunto il limite di ${reserved.limit} creazioni nelle ultime 24 ore del piano ${plan.toUpperCase()}. Potrai creare un nuovo file dopo il rinnovo indicato.`, plan, quota: reserved });
       }
@@ -332,6 +430,7 @@ export default async function handler(req, res) {
 
     const data = await generateStructuredContent(prompt, format);
     await addVisuals(data, format);
+
     let output;
     if (format === "pdf") output = await makePdf(data);
     else if (format === "docx") output = await makeDocx(data);
@@ -340,18 +439,27 @@ export default async function handler(req, res) {
 
     const ext = format;
     const filename = safeFilename(data.title, ext);
-    res.setHeader("Content-Type", ({ pdf: "application/pdf", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })[format]);
+    res.setHeader("Content-Type", ({
+      pdf: "application/pdf",
+      docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    })[format]);
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("X-Lumos-Plan", plan);
     res.setHeader("X-Lumos-Creations-Remaining", String(quota.remaining));
     res.setHeader("X-Lumos-Creations-Limit", String(quota.limit));
     res.setHeader("X-Lumos-Creations-Used", String(quota.used));
+
     return res.status(200).send(Buffer.from(output));
   } catch (error) {
     if (reservationId && userId) {
-      try { await rpc("release_lumos_creation", { p_user_id: userId, p_request_id: reservationId }); }
-      catch (releaseError) { console.error("Impossibile rilasciare la creazione:", releaseError); }
+      try {
+        await rpc("release_lumos_creation", { p_user_id: userId, p_request_id: reservationId });
+      } catch (releaseError) {
+        console.error("Impossibile rilasciare la creazione:", releaseError);
+      }
     }
     console.error("Errore creazione Lumos:", error);
     return res.status(400).json({ error: error.message || "Errore durante la creazione del file." });
