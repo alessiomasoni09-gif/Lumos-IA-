@@ -1,0 +1,28 @@
+LUMOS IA — AGGIORNAMENTO CREAZIONE DOCUMENTI
+
+Contenuto:
+- index.html: interfaccia aggiornata con pulsante Crea, PDF/Word/PowerPoint/Excel e blocco allegati per gli ospiti.
+- api/chat.js: backend chat aggiornato; gli ospiti possono inviare testo ma non allegati.
+- api/create-document.js: nuovo endpoint protetto per creare e scaricare file.
+- package.json: dipendenze per generare PDF, DOCX, PPTX e XLSX.
+- supabase-creations.sql: tabella e funzioni Supabase per i limiti mobili di 24 ore.
+
+INSTALLAZIONE
+1. Nel repository GitHub di Lumos IA, sostituisci il file index.html con quello incluso.
+2. Sostituisci api/chat.js con il file incluso.
+3. Aggiungi api/create-document.js (se la cartella api esiste già, mettilo lì).
+4. Sostituisci package.json con quello incluso. Il file package.json attuale del progetto era quello minimale condiviso nella conversazione; se nel frattempo hai aggiunto altre dipendenze, non cancellarle: uniscile a quelle elencate qui.
+5. Apri Supabase → SQL Editor, incolla tutto supabase-creations.sql ed esegui una volta.
+6. Controlla in Vercel che siano ancora presenti le variabili GROQ_API_KEY e SUPABASE_SERVICE_ROLE_KEY. Non inserirle nel codice o in GitHub.
+7. Fai commit/push su GitHub e attendi il deploy Vercel. Vercel deve installare le nuove dipendenze da package.json.
+
+LIMITI
+- Ospite senza Google: solo chat testuale.
+- Utente Google FREE: 3 creazioni ogni 24 ore.
+- BASE: 10 creazioni ogni 24 ore.
+- PREMIUM: 15 creazioni ogni 24 ore.
+- Account proprietario configurato nel backend: creazioni illimitate.
+- I limiti vengono verificati lato server tramite Supabase e non soltanto dall'interfaccia.
+
+IMPORTANTE
+Questi file sono preparati e i controlli JavaScript sono stati verificati sintatticamente. Non sono ancora pubblicati sul tuo GitHub/Vercel e lo script SQL non è ancora stato eseguito nel tuo progetto Supabase. Dopo l'installazione, va testato un file per ciascun formato prima di considerare la funzione pronta per tutti gli utenti.
