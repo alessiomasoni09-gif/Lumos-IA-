@@ -142,7 +142,7 @@ button,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cu
 .image-create-status{color:#bdb8e5;font-size:11px;line-height:1.5}
 .image-create-result{margin-top:12px}
 .image-create-result img{display:block;width:auto;max-width:100%;max-height:480px;object-fit:contain;border-radius:12px;border:1px solid #78caff88;box-shadow:0 5px 25px #0006}
-.image-create-download{display:inline-block;margin-top:9px;padding:8px 12px;border:1px solid #65cfff88;border-radius:9px;color:#d9f5ff;text-decoration:none;background:#12365b}
+.image-create-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:10px}.image-create-action{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border:1px solid #65cfff88;border-radius:9px;color:#d9f5ff;text-decoration:none;background:#12365b;font:600 13px inherit;cursor:pointer}.image-create-action:hover{background:#1b4c79}
 .image-create-note{margin-top:8px;color:#a9b6d6;font-size:10px;line-height:1.5}
 .input-box{width:min(850px,100%);margin:auto;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:28px;border:1px solid #ffffff30;background:#202123;box-shadow:0 4px 20px #0005;backdrop-filter:blur(20px);transition:border-color .2s,box-shadow .2s}
 .input-box:focus-within{border-color:#ffffff60;box-shadow:0 0 0 2px #ffffff0d,0 4px 25px #0005}
@@ -1578,8 +1578,9 @@ async function generateImageWithHorde(prompt){
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-      prompt:prompt,
-      params:{width:512,height:512,steps:20,n:1,cfg_scale:7,sampler_name:'k_euler'},
+      prompt:prompt+' , highly detailed, sharp focus, realistic lighting, natural proportions, professional photography, detailed textures, high quality'+
+        '### blurry, low resolution, pixelated, out of focus, deformed face, deformed hands, extra fingers, extra limbs, bad anatomy, duplicate person, distorted car, watermark, text, jpeg artifacts',
+      params:{width:768,height:768,steps:30,n:1,cfg_scale:7.5,sampler_name:'k_euler_a',karras:true},
       nsfw:false,
       censor_nsfw:true,
       r2:true,
@@ -1591,7 +1592,7 @@ async function generateImageWithHorde(prompt){
 
   const startedAt=Date.now();
   let lastQueuePosition=null;
-  while(Date.now()-startedAt<10*60*1000){
+  while(Date.now()-startedAt<15*60*1000){
     await waitForImage(4000);
     const check=await hordeRequest('/generate/check/'+encodeURIComponent(accepted.id));
     if(check.faulted)throw new Error('La generazione è stata interrotta dai worker. Riprova con una descrizione diversa.');
@@ -1608,7 +1609,7 @@ async function generateImageWithHorde(prompt){
       return generation.img;
     }
   }
-  throw new Error('La coda è ancora troppo lunga. Puoi riprovare più tardi: non è stato effettuato alcun pagamento.');
+  throw new Error('La coda è ancora troppo lunga (15 minuti). Puoi riprovare più tardi: non è stato effettuato alcun pagamento.');
 }
 
 imageCreateSubmit.onclick=async()=>{
@@ -1637,15 +1638,56 @@ imageCreateSubmit.onclick=async()=>{
     image.alt='Immagine generata da Lumos IA';
     image.loading='eager';
     image.src=imageUrl;
+    image.style.cursor='zoom-in';
+    image.title='Clicca per aprire l’immagine a grandezza intera';
+    image.onclick=()=>window.open(imageUrl,'_blank','noopener,noreferrer');
     imageCreateResult.appendChild(image);
-    const download=document.createElement('a');
-    download.className='image-create-download';
-    download.href=imageUrl;
-    download.target='_blank';
-    download.rel='noopener noreferrer';
-    download.download='lumos-ia-immagine.webp';
-    download.textContent='↗ Apri / salva immagine';
-    imageCreateResult.appendChild(download);
+
+    const actions=document.createElement('div');
+    actions.className='image-create-actions';
+    const openImage=document.createElement('a');
+    openImage.className='image-create-action';
+    openImage.href=imageUrl;
+    openImage.target='_blank';
+    openImage.rel='noopener noreferrer';
+    openImage.textContent='↗ Apri immagine';
+    actions.appendChild(openImage);
+
+    const download=document.createElement('button');
+    download.type='button';
+    download.className='image-create-action';
+    download.textContent='⬇ Scarica immagine';
+    download.onclick=async()=>{
+      download.disabled=true;
+      const oldText=download.textContent;
+      download.textContent='⏳ Preparazione...';
+      try{
+        const response=await fetch(imageUrl);
+        if(!response.ok)throw new Error('Download non disponibile');
+        const blob=await response.blob();
+        const blobUrl=URL.createObjectURL(blob);
+        const link=document.createElement('a');
+        link.href=blobUrl;
+        link.download='lumos-ia-immagine.'+((blob.type.split('/')[1]||'png').split(';')[0]);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(()=>URL.revokeObjectURL(blobUrl),1500);
+      }catch(error){
+        const link=document.createElement('a');
+        link.href=imageUrl;
+        link.target='_blank';
+        link.rel='noopener noreferrer';
+        link.download='lumos-ia-immagine';
+        link.click();
+        alert('Se il download non parte automaticamente, si è aperta l’immagine: usa il menu del browser per salvarla.');
+      }finally{
+        download.disabled=false;
+        download.textContent=oldText;
+      }
+    };
+    actions.appendChild(download);
+    imageCreateResult.appendChild(actions);
     imageCreateStatus.textContent='✓ Immagine generata! Puoi aprirla e salvarla.';
     imageCreateResult.scrollIntoView({behavior:'smooth',block:'nearest'});
   }catch(error){
