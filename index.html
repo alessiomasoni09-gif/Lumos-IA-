@@ -275,9 +275,9 @@ textarea::placeholder{color:#a1a1aa}
       <textarea id="imageCreatePrompt" maxlength="1000" placeholder="Esempio: un castello fantasy su una montagna, al tramonto, stile cinematografico..."></textarea>
       <div class="image-create-actions">
         <button class="image-create-submit" id="imageCreateSubmit" type="button">✨ Genera immagine</button>
-        <span class="image-create-status" id="imageCreateStatus">Gratuito tramite AI Horde · possibili attese in coda.</span>
+        <span class="image-create-status" id="imageCreateStatus">Gratuito · modello Deliberate · possibili attese in coda.</span>
       </div>
-      <div class="image-create-note">Servizio community senza pagamento o chiave personale. Le richieste anonime possono essere condivise per il miglioramento dei modelli: non inserire dati personali o contenuti privati.</div>
+      <div class="image-create-note">Servizio community gratuito, senza pagamento o chiave personale. Usiamo il modello Deliberate con impostazioni compatibili con l’uso anonimo. Le richieste anonime possono essere condivise: non inserire dati personali o contenuti privati.</div>
       <div class="image-create-result" id="imageCreateResult"></div>
     </section>
     <section class="creation-panel" id="creationPanel" hidden>
@@ -1580,7 +1580,8 @@ async function generateImageWithHorde(prompt){
     body:JSON.stringify({
       prompt:prompt+' , highly detailed, sharp focus, realistic lighting, natural proportions, professional photography, detailed textures, high quality'+
         '### blurry, low resolution, pixelated, out of focus, deformed face, deformed hands, extra fingers, extra limbs, bad anatomy, duplicate person, distorted car, watermark, text, jpeg artifacts',
-      params:{width:768,height:768,steps:30,n:1,cfg_scale:7.5,sampler_name:'k_euler_a',karras:true},
+      params:{width:512,height:512,steps:20,n:1,cfg_scale:7.5,sampler_name:'k_euler',karras:true,clip_skip:1,tiling:false},
+      models:['Deliberate'],
       nsfw:false,
       censor_nsfw:true,
       r2:true,
