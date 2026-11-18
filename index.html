@@ -1183,27 +1183,31 @@ async function compressImageForUpload(file){
     await image.decode();
     let width=image.naturalWidth;
     let height=image.naturalHeight;
-    const maxSide=2560;
-    if(Math.max(width,height)>maxSide){
-      const scale=maxSide/Math.max(width,height);
-      width=Math.round(width*scale);
-      height=Math.round(height*scale);
+    if(!width||!height)throw new Error('Impossibile leggere le dimensioni dell’immagine.');
+    const initialMaxSide=2560;
+    if(Math.max(width,height)>initialMaxSide){
+      const scale=initialMaxSide/Math.max(width,height);
+      width=Math.max(1,Math.round(width*scale));
+      height=Math.max(1,Math.round(height*scale));
     }
     const canvas=document.createElement('canvas');
     const context=canvas.getContext('2d');
     if(!context)throw new Error('Compressione immagini non disponibile in questo browser.');
+    const qualities=[0.86,0.78,0.70,0.62,0.54,0.46,0.38,0.32,0.28,0.24,0.22,0.20];
     let blob=null;
-    for(let attempt=0;attempt<8;attempt++){
+    for(let attempt=0;attempt<qualities.length;attempt++){
       canvas.width=width;
       canvas.height=height;
       context.clearRect(0,0,width,height);
       context.drawImage(image,0,0,width,height);
-      const quality=[0.88,0.82,0.76,0.70,0.64,0.58,0.52,0.46][attempt];
-      blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
+      const format=attempt<8?'image/webp':'image/jpeg';
+      blob=await new Promise(resolve=>canvas.toBlob(resolve,format,qualities[attempt]));
       if(blob&&blob.size<=MAX_IMAGE_COMPRESSED_SIZE)break;
-      if(attempt===3||attempt===5){width=Math.max(800,Math.round(width*0.82));height=Math.max(800,Math.round(height*0.82));}
+      // Riduce progressivamente anche la risoluzione, senza bloccare il lato corto a 800 px.
+      width=Math.max(1,Math.round(width*0.82));
+      height=Math.max(1,Math.round(height*0.82));
     }
-    if(!blob||blob.size>MAX_IMAGE_COMPRESSED_SIZE)throw new Error('Non riesco a ridurre questa immagine abbastanza. Prova con un’immagine più leggera.');
+    if(!blob||blob.size>MAX_IMAGE_COMPRESSED_SIZE)throw new Error('Questa immagine è ancora troppo grande anche dopo la compressione. Prova a ridimensionarla o a salvarla in JPG.');
     return {data:await fileToDataURL(blob),size:blob.size};
   }finally{URL.revokeObjectURL(objectUrl)}
 }
