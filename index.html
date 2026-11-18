@@ -365,8 +365,10 @@ let authProcessingPromise=null;
 let authProcessingUserId=null;
 let authReadyUserId=null;
 
-const MAX_FILE_SIZE=2*1024*1024;
-const MAX_TOTAL_SIZE=2*1024*1024;
+const MAX_FILE_SIZE=2*1024*1024; // Limite per audio e documenti originali
+const MAX_IMAGE_ORIGINAL_SIZE=20*1024*1024; // Le immagini possono arrivare a 20 MB
+const MAX_IMAGE_COMPRESSED_SIZE=1.8*1024*1024; // Mantiene la richiesta API entro limiti sicuri
+const MAX_TOTAL_SIZE=2*1024*1024; // Totale allegati effettivamente inviati
 
 function storageKey(){return currentUser?'lumos_chats_'+currentUser.id:'lumos_chats'}
 function readLocalChats(key){
@@ -1170,6 +1172,41 @@ function fileToDataURL(file){
     reader.readAsDataURL(file);
   });
 }
+async function compressImageForUpload(file){
+  if(!file.type.startsWith('image/'))throw new Error('Formato immagine non supportato.');
+  if(file.size>MAX_IMAGE_ORIGINAL_SIZE)throw new Error('L’immagine supera il limite di 20 MB.');
+  const objectUrl=URL.createObjectURL(file);
+  try{
+    const image=new Image();
+    image.decoding='async';
+    image.src=objectUrl;
+    await image.decode();
+    let width=image.naturalWidth;
+    let height=image.naturalHeight;
+    const maxSide=2560;
+    if(Math.max(width,height)>maxSide){
+      const scale=maxSide/Math.max(width,height);
+      width=Math.round(width*scale);
+      height=Math.round(height*scale);
+    }
+    const canvas=document.createElement('canvas');
+    const context=canvas.getContext('2d');
+    if(!context)throw new Error('Compressione immagini non disponibile in questo browser.');
+    let blob=null;
+    for(let attempt=0;attempt<8;attempt++){
+      canvas.width=width;
+      canvas.height=height;
+      context.clearRect(0,0,width,height);
+      context.drawImage(image,0,0,width,height);
+      const quality=[0.88,0.82,0.76,0.70,0.64,0.58,0.52,0.46][attempt];
+      blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
+      if(blob&&blob.size<=MAX_IMAGE_COMPRESSED_SIZE)break;
+      if(attempt===3||attempt===5){width=Math.max(800,Math.round(width*0.82));height=Math.max(800,Math.round(height*0.82));}
+    }
+    if(!blob||blob.size>MAX_IMAGE_COMPRESSED_SIZE)throw new Error('Non riesco a ridurre questa immagine abbastanza. Prova con un’immagine più leggera.');
+    return {data:await fileToDataURL(blob),size:blob.size};
+  }finally{URL.revokeObjectURL(objectUrl)}
+}
 function textToDataURL(text){
   const bytes=new TextEncoder().encode(text);
   let binary='';
@@ -1230,22 +1267,30 @@ async function addFiles(files){
         alert('Il tuo piano consente massimo '+attachmentLimit+' allegato/i per messaggio.');
         break;
       }
-      if(file.size>MAX_FILE_SIZE){
-        alert(file.name+' è troppo grande. Il limite è 2 MB per file.');
+      const type=file.type.toLowerCase();
+      if(type.startsWith('image/')){
+        if(file.size>MAX_IMAGE_ORIGINAL_SIZE){
+          alert(file.name+' è troppo grande. Il limite per le immagini è 20 MB.');
+          continue;
+        }
+      }else if(file.size>MAX_FILE_SIZE){
+        alert(file.name+' è troppo grande. Il limite per audio e documenti è 2 MB.');
         continue;
       }
       const currentTotal=pendingAttachments.reduce((sum,item)=>sum+item.size,0);
-      if(currentTotal+file.size>MAX_TOTAL_SIZE){
-        alert('La dimensione totale degli allegati non può superare 2 MB.');
-        break;
-      }
-
-      const type=file.type.toLowerCase();
       let attachment;
 
       if(type.startsWith('image/')){
-        const data=await fileToDataURL(file);
-        attachment={name:file.name,data,size:file.size,kind:'image'};
+        inputHint.textContent='Ottimizzazione immagine: '+file.name+'...';
+        const optimized=await compressImageForUpload(file);
+        if(currentTotal+optimized.size>MAX_TOTAL_SIZE){
+          alert('Gli allegati ottimizzati superano il limite complessivo di 2 MB. Rimuovi un allegato o usa un’immagine più piccola.');
+          break;
+        }
+        attachment={name:file.name,data:optimized.data,size:optimized.size,kind:'image'};
+      }else if(currentTotal+file.size>MAX_TOTAL_SIZE){
+        alert('La dimensione totale degli allegati non può superare 2 MB.');
+        break;
       }else if(type.startsWith('audio/')){
         const data=await fileToDataURL(file);
         attachment={name:file.name,data,size:file.size,kind:'audio'};
